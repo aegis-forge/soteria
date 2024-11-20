@@ -5,7 +5,7 @@ type Workflow struct {
 	RunName     string                 `mapstructure:"run_name"`
 	On          interface{}            `mapstructure:"on"`
 	Permissions interface{}            `mapstructure:"permissions"`
-	Env         interface{}            `mapstructure:"env"`
+	Env         map[string]interface{} `mapstructure:"env"`
 	Defaults    map[string]interface{} `mapstructure:"defaults"`
 	Concurrency map[string]interface{} `mapstructure:"concurrency"`
 	Jobs        map[string]Job         `mapstructure:"jobs"`

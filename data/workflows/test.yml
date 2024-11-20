@@ -2,28 +2,30 @@
 
 name: Changelog
 
-on:
-  push:
-    tags:
-      - 'v*'
+on: [push, pull]
 
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-permissions: read-all
+permissions:
+  ciao: read
+  ciao1: write
 
 defaults:
-  ciao: ciao
+  ciao: 1
+  ciao1: ciao
   run:
     shell: ciao
+    ciao: ciao
+    bho:
+      ciao: ciao
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-
 env:
-  VAR: ciao
+  VAR: ${{ github.workflow }}
+  VAR1: ciao
+  VAR2: ciao-${{}}
+  VAR3: ciao ${{github}}
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:

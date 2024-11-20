@@ -1,16 +1,17 @@
 package main
 
 import (
-	"flag"
-	"fmt"
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 	"path/filepath"
 	"tool/app/internal/helpers"
+	"tool/app/internal/statistics"
 )
 
 func main() {
+	var computeStatistics bool
+
 	app := &cli.App{
 		Name:  "Tool",
 		Usage: "Statically analyze GitHub workflow files with custom detectors",
@@ -29,12 +30,16 @@ func main() {
 
 						if !info.IsDir() {
 							workflow, err := helpers.ReadFile(path)
-
 							if err != nil {
 								return err
 							}
 
-							log.Print(workflow)
+							if computeStatistics {
+								stats := statistics.ComputeStatistics(workflow)
+								log.Print(stats)
+							}
+
+							//log.Print(workflow)
 						}
 
 						return nil
@@ -45,12 +50,16 @@ func main() {
 					}
 				} else {
 					workflow, err := helpers.ReadFile(ctx.Args().Get(ind))
-
 					if err != nil {
 						return err
 					}
 
-					log.Print(workflow)
+					if computeStatistics {
+						stats := statistics.ComputeStatistics(workflow)
+						log.Print(stats.Workflow.Defaults)
+					}
+
+					//log.Print(workflow)
 				}
 			}
 
@@ -58,16 +67,10 @@ func main() {
 		},
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
-				Name:    "stats",
-				Aliases: []string{"s"},
-				Usage:   "Compute and display statistics for each passed workflow",
-				Action: func(ctx *cli.Context, val bool) error {
-					if val {
-
-					}
-
-					return nil
-				},
+				Name:        "stats",
+				Aliases:     []string{"s"},
+				Usage:       "Compute and display statistics for each passed workflow",
+				Destination: &computeStatistics,
 			},
 		},
 	}
@@ -75,23 +78,4 @@ func main() {
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func main_() {
-	// CLI flags
-	stats := flag.Bool("stats", false, "Compute and display statistics for each passed workflow")
-	flag.Usage = func() {
-		_, err := fmt.Fprintln(os.Stderr, "Flags:")
-
-		if err != nil {
-			return
-		}
-
-		flag.PrintDefaults()
-	}
-
-	// Parse CLI flags
-	flag.Parse()
-
-	log.Print(*stats)
 }
