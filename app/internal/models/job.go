@@ -2,7 +2,7 @@ package models
 
 type Job struct {
 	Name            string                 `mapstructure:"name"`
-	Permissions     map[string]string      `mapstructure:"permissions"`
+	Permissions     interface{}            `mapstructure:"permissions"`
 	Needs           []string               `mapstructure:"needs"`
 	If              string                 `mapstructure:"if"`
 	RunsOn          interface{}            `mapstructure:"runs-on"`

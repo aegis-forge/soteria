@@ -26,9 +26,9 @@ type JobsStatistics struct {
 	Defaults          IntStatistics         `json:"defaults"`
 	CustomContainers  IntStatistics         `json:"custom-containers"`
 	Services          IntStatistics         `json:"services"`
-	Workflows         IntStatistics         `json:"workflows"`
+	CustomWorkflows   IntStatistics         `json:"workflows"`
 	Secrets           EnvironmentStatistics `json:"secrets"`
-	Count             IntStatistics         `json:"count"`
+	Count             int                   `json:"count"`
 }
 
 type ContainersStatistics struct {
@@ -67,6 +67,7 @@ type CoarseGrainedStatistics struct {
 // Environment Statistics
 
 type EnvironmentStatistics struct {
+	Inherited IntStatistics `json:"inherited"`
 	Hardcoded IntStatistics `json:"hardcoded"`
 	Variables IntStatistics `json:"variables"`
 	Count     IntStatistics `json:"count"`
@@ -76,6 +77,9 @@ type EnvironmentStatistics struct {
 
 type IntStatistics struct {
 	Total  int     `json:"total"`
-	Mean   float32 `json:"mean"`
-	Median float32 `json:"median"`
+	Min    int     `json:"min"`
+	Max    int     `json:"max"`
+	Mean   int     `json:"mean"`
+	Median int     `json:"median"`
+	Std    float64 `json:"std"`
 }

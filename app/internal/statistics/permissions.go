@@ -1,12 +1,52 @@
 package statistics
 
 import (
-	"log"
 	"maps"
-	"reflect"
 	"slices"
+	"tool/app/internal/helpers"
 	"tool/app/internal/models"
 )
+
+func permissionsArrayCount(permissions []models.PermissionsStatistics) models.PermissionsStatistics {
+	var valsRead []int
+	var valsWrite []int
+	var valsNone []int
+	var valsReadAll []int
+	var valsWriteAll []int
+	var valsNoneAll []int
+	var valsDefault []int
+	var counts []int
+
+	for _, permission := range permissions {
+		valsRead = append(valsRead, permission.FineGrained.Read.Total)
+		valsWrite = append(valsWrite, permission.FineGrained.Write.Total)
+		valsNone = append(valsNone, permission.FineGrained.None.Total)
+		valsReadAll = append(valsReadAll, permission.CoarseGrained.ReadAll.Total)
+		valsWriteAll = append(valsWriteAll, permission.CoarseGrained.WriteAll.Total)
+		valsNoneAll = append(valsNoneAll, permission.CoarseGrained.NoneAll.Total)
+		valsDefault = append(valsDefault, permission.CoarseGrained.Default.Total)
+		counts = append(counts, helpers.ComputeSum([]int{
+			permission.FineGrained.Read.Total, permission.FineGrained.Write.Total, permission.FineGrained.None.Total,
+			permission.CoarseGrained.ReadAll.Total, permission.CoarseGrained.WriteAll.Total,
+			permission.CoarseGrained.NoneAll.Total, permission.CoarseGrained.Default.Total,
+		}))
+	}
+
+	return models.PermissionsStatistics{
+		FineGrained: models.FineGrainedStatistics{
+			Read:  BuildIntStatistics(valsRead),
+			Write: BuildIntStatistics(valsWrite),
+			None:  BuildIntStatistics(valsNone),
+		},
+		CoarseGrained: models.CoarseGrainedStatistics{
+			ReadAll:  BuildIntStatistics(valsReadAll),
+			WriteAll: BuildIntStatistics(valsWriteAll),
+			NoneAll:  BuildIntStatistics(valsNoneAll),
+			Default:  BuildIntStatistics(valsDefault),
+		},
+		Count: BuildIntStatistics(counts),
+	}
+}
 
 func permissionsCount(permissions interface{}) models.PermissionsStatistics {
 	permissionsFine := map[string]int{
@@ -22,16 +62,18 @@ func permissionsCount(permissions interface{}) models.PermissionsStatistics {
 		"default":   0,
 	}
 
-	log.Print(reflect.TypeOf(permissions).Kind())
 	switch permissions := permissions.(type) {
 	case string:
 		if slices.Contains(slices.Collect(maps.Keys(permissionsCoarse)), permissions) {
 			permissionsCoarse[permissions] += 1
+		} else {
+			permissionsCoarse["default"] += 1
 		}
 	case map[string]interface{}:
 		if len(permissions) == 0 {
 			permissionsCoarse["none-all"] += 1
 		} else {
+
 			for _, access := range permissions {
 				permissionsFine[access.(string)] += 1
 			}

@@ -5,8 +5,9 @@ name: Changelog
 on: [push, pull]
 
 permissions:
-  ciao: read
-  ciao1: write
+  actions: read
+  others: write
+  tests: none
 
 defaults:
   ciao: 1
@@ -34,18 +35,19 @@ jobs:
     name: Build repo
 
     uses: octo-org/example-repo/.github/workflows/called-workflow.yml@main
+
     with:
       username: mona
 
     permissions:
       actions: read
-      other: write
+      others: write
 
     needs:
       - ciao
       - ciao2
 
-    if: github.repository == 'octo-org/octo-repo-prod'
+    if: "github.repository == 'octo-org/octo-repo-prod'"
 
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
@@ -95,3 +97,10 @@ jobs:
         uses: fregante/release-with-changelog@v3.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+
+  release:
+    permissions:
+      test: read
+      test1: read
+      test2: read
+    env: inherit

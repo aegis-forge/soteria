@@ -56,7 +56,7 @@ func main() {
 
 					if computeStatistics {
 						stats := statistics.ComputeStatistics(workflow)
-						log.Print(stats.Workflow.Defaults)
+						log.Print(stats.Jobs)
 					}
 
 					//log.Print(workflow)
