@@ -10,10 +10,10 @@ type Statistics struct {
 // Workflow Sections Statistics
 
 type WorkflowStatistics struct {
-	Events      int                   `json:"events"`
+	Events      IntStatistics         `json:"events"`
 	Permissions PermissionsStatistics `json:"permissions"`
 	Environment EnvironmentStatistics `json:"environment"`
-	Defaults    int                   `json:"defaults"`
+	Defaults    IntStatistics         `json:"defaults"`
 }
 
 type JobsStatistics struct {
@@ -28,7 +28,7 @@ type JobsStatistics struct {
 	Services          IntStatistics         `json:"services"`
 	CustomWorkflows   IntStatistics         `json:"workflows"`
 	Secrets           EnvironmentStatistics `json:"secrets"`
-	Count             int                   `json:"count"`
+	Count             IntStatistics         `json:"count"`
 }
 
 type ContainersStatistics struct {
@@ -38,6 +38,7 @@ type ContainersStatistics struct {
 }
 
 type StepsStatistics struct {
+	Conditionals  IntStatistics         `json:"conditionals"`
 	CustomActions IntStatistics         `json:"custom-actions"`
 	RunScripts    IntStatistics         `json:"run-scripts"`
 	Environments  EnvironmentStatistics `json:"environments"`

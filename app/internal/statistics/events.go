@@ -1,14 +1,20 @@
 package statistics
 
-func eventsCount(on interface{}) int {
+import "tool/app/internal/models"
+
+func eventsCount(on interface{}) models.IntStatistics {
+	var total int
+
 	switch events := on.(type) {
 	case string:
-		return 1
+		total = 1
 	case []interface{}:
-		return len(events)
+		total = len(events)
 	case map[string]interface{}:
-		return len(events)
+		total = len(events)
 	default:
-		return 0
+		total = 0
 	}
+
+	return models.IntStatistics{Total: total}
 }

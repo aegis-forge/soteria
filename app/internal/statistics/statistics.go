@@ -1,14 +1,22 @@
 package statistics
 
 import (
+	"slices"
 	"tool/app/internal/helpers"
 	"tool/app/internal/models"
 )
 
 func ComputeStatistics(workflow models.Workflow) models.Statistics {
+	var steps []models.Step
+
+	for _, job := range workflow.Jobs {
+		steps = slices.Concat(steps, job.Steps)
+	}
+
 	return models.Statistics{
 		Workflow: computeWorkflowStatistics(workflow),
 		Jobs:     computeJobsStatistics(workflow.Jobs),
+		Steps:    computeStepsStatistics(steps),
 	}
 }
 
@@ -63,6 +71,27 @@ func computeJobsStatistics(jobs map[string]models.Job) models.JobsStatistics {
 		Services:          intStatisticsArrayCount(services),
 		CustomWorkflows:   intStatisticsArrayCount(customWorkflows),
 		Secrets:           environmentArrayCount(secrets),
-		Count:             count,
+		Count:             models.IntStatistics{Total: count},
+	}
+}
+
+func computeStepsStatistics(steps []models.Step) models.StepsStatistics {
+	var conditionals []models.IntStatistics
+	var customActions []models.IntStatistics
+	var runScripts []models.IntStatistics
+	var environments []models.EnvironmentStatistics
+
+	for _, step := range steps {
+		conditionals = append(conditionals, models.IntStatistics{Total: helpers.CheckPresence(step.If)})
+		customActions = append(customActions, models.IntStatistics{Total: helpers.CheckPresence(step.Uses)})
+		runScripts = append(runScripts, models.IntStatistics{Total: helpers.CheckPresence(step.Run)})
+		environments = append(environments, environmentCount(step.Env))
+	}
+
+	return models.StepsStatistics{
+		Conditionals:  intStatisticsArrayCount(conditionals),
+		CustomActions: intStatisticsArrayCount(customActions),
+		RunScripts:    intStatisticsArrayCount(runScripts),
+		Environments:  environmentArrayCount(environments),
 	}
 }
