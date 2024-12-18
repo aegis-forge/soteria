@@ -18,6 +18,10 @@ func intStatisticsArrayCount(array []models.IntStatistics) models.IntStatistics 
 }
 
 func BuildIntStatistics(array []int) models.IntStatistics {
+	if len(array) == 0 {
+		return models.IntStatistics{}
+	}
+
 	floatArray := make([]float64, len(array))
 
 	for _, el := range array {

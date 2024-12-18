@@ -18,7 +18,7 @@ func SetDefaults(workflow *models.Workflow) {
 	}
 }
 
-func Unmarshal(data []byte, workflow *models.Workflow) error {
+func UnmarshalWorkflow(data []byte, workflow *models.Workflow) error {
 	var raw interface{}
 
 	if err := yaml.Unmarshal(data, &raw); err != nil {

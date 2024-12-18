@@ -6,26 +6,51 @@ import (
 	"tool/app/internal/models"
 )
 
+func AggregateStatistics(statistics []models.Statistics) models.GlobalStatistics {
+	var jobs []int
+	var steps []int
+	var containers []int
+
+	for _, stat := range statistics {
+		jobs = append(jobs, stat.Jobs.Count.Total)
+		steps = append(steps, stat.Steps.Count.Total)
+		containers = append(containers, stat.Containers.Count.Total)
+	}
+
+	return models.GlobalStatistics{
+		Jobs:       BuildIntStatistics(jobs),
+		Steps:      BuildIntStatistics(steps),
+		Containers: BuildIntStatistics(containers),
+	}
+}
+
 func ComputeStatistics(workflow models.Workflow) models.Statistics {
 	var steps []models.Step
+	var containers []models.Container
 
 	for _, job := range workflow.Jobs {
 		steps = slices.Concat(steps, job.Steps)
+
+		if helpers.CheckPresence(job.Container) == 1 {
+			containers = append(containers, job.Container)
+		}
 	}
 
 	return models.Statistics{
-		Workflow: computeWorkflowStatistics(workflow),
-		Jobs:     computeJobsStatistics(workflow.Jobs),
-		Steps:    computeStepsStatistics(steps),
+		Workflow:   computeWorkflowStatistics(workflow),
+		Jobs:       computeJobsStatistics(workflow.Jobs),
+		Steps:      computeStepsStatistics(steps),
+		Containers: computeContainersStatistics(containers),
 	}
 }
 
 func computeWorkflowStatistics(workflow models.Workflow) models.WorkflowStatistics {
 	return models.WorkflowStatistics{
 		Events:      eventsCount(workflow.On),
-		Defaults:    defaultsCount(workflow.Defaults),
 		Permissions: permissionsCount(workflow.Permissions),
 		Environment: environmentCount(workflow.Env),
+		Jobs:        models.IntStatistics{Total: len(workflow.Jobs)},
+		Defaults:    defaultsCount(workflow.Defaults),
 	}
 }
 
@@ -41,6 +66,7 @@ func computeJobsStatistics(jobs map[string]models.Job) models.JobsStatistics {
 	var services []models.IntStatistics
 	var customWorkflows []models.IntStatistics
 	var secrets []models.EnvironmentStatistics
+	var steps []models.IntStatistics
 
 	count := 0
 
@@ -56,6 +82,7 @@ func computeJobsStatistics(jobs map[string]models.Job) models.JobsStatistics {
 		services = append(services, models.IntStatistics{Total: len(job.Services)})
 		customWorkflows = append(customWorkflows, models.IntStatistics{Total: helpers.CheckPresence(job.Uses)})
 		secrets = append(secrets, environmentCount(job.Secrets))
+		steps = append(steps, models.IntStatistics{Total: len(job.Steps)})
 		count++
 	}
 
@@ -71,6 +98,7 @@ func computeJobsStatistics(jobs map[string]models.Job) models.JobsStatistics {
 		Services:          intStatisticsArrayCount(services),
 		CustomWorkflows:   intStatisticsArrayCount(customWorkflows),
 		Secrets:           environmentArrayCount(secrets),
+		Steps:             intStatisticsArrayCount(steps),
 		Count:             models.IntStatistics{Total: count},
 	}
 }
@@ -81,11 +109,14 @@ func computeStepsStatistics(steps []models.Step) models.StepsStatistics {
 	var runScripts []models.IntStatistics
 	var environments []models.EnvironmentStatistics
 
+	count := 0
+
 	for _, step := range steps {
 		conditionals = append(conditionals, models.IntStatistics{Total: helpers.CheckPresence(step.If)})
 		customActions = append(customActions, models.IntStatistics{Total: helpers.CheckPresence(step.Uses)})
 		runScripts = append(runScripts, models.IntStatistics{Total: helpers.CheckPresence(step.Run)})
 		environments = append(environments, environmentCount(step.Env))
+		count++
 	}
 
 	return models.StepsStatistics{
@@ -93,5 +124,26 @@ func computeStepsStatistics(steps []models.Step) models.StepsStatistics {
 		CustomActions: intStatisticsArrayCount(customActions),
 		RunScripts:    intStatisticsArrayCount(runScripts),
 		Environments:  environmentArrayCount(environments),
+		Count:         models.IntStatistics{Total: count},
+	}
+}
+
+func computeContainersStatistics(containers []models.Container) models.ContainersStatistics {
+	var credentials []models.EnvironmentStatistics
+	var environments []models.EnvironmentStatistics
+
+	count := 0
+
+	for _, container := range containers {
+		credentials = append(credentials, environmentCount(container.Credentials))
+		environments = append(environments, environmentCount(container.Env))
+
+		count++
+	}
+
+	return models.ContainersStatistics{
+		Credentials:  environmentArrayCount(credentials),
+		Environments: environmentArrayCount(environments),
+		Count:        models.IntStatistics{Total: count},
 	}
 }

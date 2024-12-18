@@ -1,8 +1,14 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Changelog
+name: Ciao
 
-on: [push, pull]
+on:
+  push:
+    branches: [ "release" ]
+    types: [ "released" ]
+  pull_request:
+    branches: [ "master" ]
+    tags: [ "master", "release" ]
 
 permissions:
   actions: read
@@ -39,9 +45,7 @@ jobs:
     with:
       username: mona
 
-    permissions:
-      actions: read
-      others: write
+    permissions: read-all
 
     needs:
       - ciao
@@ -91,16 +95,15 @@ jobs:
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: actions/cache@v2
 
       - name: Release with Changelog
-        uses: fregante/release-with-changelog@v3.0.0
+        uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
   release:
     permissions:
-      test: read
-      test1: read
-      test2: read
+      read: read
+      write: write
     env: inherit

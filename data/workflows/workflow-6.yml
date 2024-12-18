@@ -1,0 +1,290 @@
+name: Pull request Build
+
+on:
+  pull_request_target:
+    types: [ opened, synchronize, reopened ]
+    branches:
+      - "main"
+    paths-ignore:
+      - 'branding/**'
+      - 'design/**'
+      - '.codespell-whitelist'
+      - '.gitignore'
+      - '.golangci.yml'
+      - 'botkube-title.png'
+      - 'botkube_arch.jpg'
+      - 'CODE_OF_CONDUCT.md'
+      - 'comm_config.yaml.tpl'
+      - 'CONTRIBUTING.md'
+      - 'LICENSE'
+      - 'README.md'
+      - 'global_config.yaml.tpl'
+
+env:
+  HELM_VERSION: v3.9.0
+  K3D_VERSION: v5.4.6
+  PR_NUMBER: ${{ github.event.pull_request.number }}
+  IMAGE_REGISTRY: "ghcr.io"
+  IMAGE_REPOSITORY: "kubeshop/pr/botkube"
+  CFG_EXPORTER_IMAGE_REPOSITORY: "kubeshop/pr/botkube-config-exporter"
+  IMAGE_TAG: ${{ github.event.pull_request.number }}-PR
+  IMAGE_SAVE_LOAD_DIR: /tmp/botkube-images
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref_name }}-${{ github.event.pull_request.number || 'branch' }} # scope to for the current workflow
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }} # cancel only PR related jobs
+
+jobs:
+
+  save-image:
+    name: Build and save Botkube image
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          install-only: true
+          version: latest
+
+      - name: Save
+        env:
+          BUILD_TARGETS: "botkube-agent"
+        run: |
+          make save-images
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: botkube-${{github.sha}}
+          path: ${{ env.IMAGE_SAVE_LOAD_DIR }}
+          retention-days: 1
+
+  push-image:
+    name: Push images
+    runs-on: ubuntu-latest
+    needs: [ save-image ]
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: botkube-${{github.sha}}
+          path: ${{ env.IMAGE_SAVE_LOAD_DIR }}
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push
+        env:
+          BUILD_TARGETS: "botkube-agent"
+        run: make load-and-push-images
+
+      - name: Delete Docker image artifact
+        uses: geekyeggo/delete-artifact@v1
+        if: always()
+        with:
+          name: botkube-${{github.sha}}
+
+      - name: Summary
+        run: |
+          cat > $GITHUB_STEP_SUMMARY << ENDOFFILE
+
+          ### Botkube image published successfully! :rocket:
+          To test Botkube with PR changes, run:
+
+              gh pr checkout ${PR_NUMBER}
+              helm install botkube -n botkube --create-namespace \\
+              --set image.repository=${IMAGE_REPOSITORY} \\
+              --set image.tag=${IMAGE_TAG} \\
+              ./helm/botkube
+
+          ENDOFFILE
+
+  check-generated-resources:
+    runs-on: ubuntu-latest
+    # We want to check all generated resources and notify about all possible problems.
+    continue-on-error: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Run generating gRPC resources
+        run: make gen-grpc-resources
+
+      - name: Detect git changes
+        run: |
+          if [[ $(git diff --stat) != '' ]]; then
+            echo -e '❌ \033[0;31mGenerated gRPC resources are outdated. Run 'make gen-grpc-resources'.\033[0m'
+            git diff --color
+            exit 1
+          fi
+
+      - name: Run generating CLI docs
+        run: make gen-docs-cli
+
+      - name: Detect git changes
+        run: |
+          if [[ $(git diff --stat) != '' ]]; then
+            echo -e '❌ \033[0;31mGenerated CLI docs are outdated. Run 'make gen-docs-cli'.\033[0m'
+            git diff --color
+            exit 1
+          else
+            echo '✔ No issues detected. Have a nice day :-)'
+          fi
+
+      - name: Run generating Plugin GoReleaser file
+        run: make gen-plugins-goreleaser
+
+      - name: Detect git changes
+        run: |
+          if [[ $(git diff --stat) != '' ]]; then
+            echo -e '❌ \033[0;31mGenerated GoReleaser file is outdated. Run 'make gen-plugins-goreleaser'.\033[0m'
+            git diff --color
+            exit 1
+          else
+            echo '✔ No issues detected. Have a nice day :-)'
+          fi
+
+  integration-tests:
+    name: Integration tests
+    runs-on: ubuntu-latest
+    needs: [ push-image ]
+
+    permissions:
+      contents: read
+      packages: read
+
+    strategy:
+      # make the jobs independent
+      fail-fast: false
+
+      matrix:
+        integration:
+          - slack
+          - discord
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version-file: 'go.mod'
+          cache: true
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Download k3d
+        run: "wget -q -O - https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | TAG=${K3D_VERSION} bash"
+
+      - name: Create cluster to test ${{ matrix.integration }}
+        run: "k3d cluster create ${{ matrix.integration }}-test-cluster --wait --timeout=5m"
+
+      - name: Install Botkube to test ${{ matrix.integration }}
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_BOT_ID: ${{ secrets.DISCORD_BOT_ID }}
+        run: |
+          helm install botkube --namespace botkube ./helm/botkube --wait --create-namespace \
+          -f ./helm/botkube/e2e-test-values.yaml \
+          --set communications.default-group.slack.token="${SLACK_BOT_TOKEN}" \
+          --set communications.default-group.discord.token="${DISCORD_BOT_TOKEN}" \
+          --set communications.default-group.discord.botID="${DISCORD_BOT_ID}" \
+          --set image.registry="${IMAGE_REGISTRY}" \
+          --set image.repository="${IMAGE_REPOSITORY}" \
+          --set image.tag="${IMAGE_TAG}" \
+
+      - name: Install GoReleaser
+        uses: goreleaser/goreleaser-action@v5
+        with:
+          install-only: true
+          version: latest
+
+      - name: Build all plugins into dist directory
+        env:
+          # we hardcode plugins version, so it's predictable in e2e tests
+          GORELEASER_CURRENT_TAG: "v0.0.0-latest"
+          OUTPUT_MODE: "binary"
+          SINGLE_PLATFORM: "true"
+          PLUGIN_TARGETS: "kubernetes,kubectl,cm-watcher,echo,helm"
+        run: |
+          make build-plugins
+
+      - name: CLI Cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+            dist/botkube-cli_linux_amd64_v1/botkube
+          key: ${{ runner.os }}-botkube-cli
+
+      - name: Build CLI
+        run: make release-snapshot-cli
+
+      - name: Add Botkube CLI to env
+        run: |
+          echo CONFIG_PROVIDER_BOTKUBE_CLI_BINARY_PATH="$PWD/dist/botkube-cli_linux_amd64_v1/botkube" >> $GITHUB_ENV
+
+      - name: Run ${{ matrix.integration }} tests
+        env:
+          SLACK_TESTER_APP_TOKEN: ${{ secrets.SLACK_TESTER_APP_TOKEN }}
+          SLACK_CLOUD_TESTER_APP_TOKEN: ${{ secrets.SLACK_CLOUD_TESTER_APP_TOKEN }}
+          SLACK_ADDITIONAL_CONTEXT_MESSAGE: "Pull request: ${{ github.event.pull_request.number }} - https://github.com/kubeshop/botkube/pull/${{ github.event.pull_request.number }}"
+          DISCORD_TESTER_APP_TOKEN: ${{ secrets.DISCORD_TESTER_APP_TOKEN }}
+          DISCORD_GUILD_ID: ${{ secrets.DISCORD_GUILD_ID }}
+          DISCORD_ADDITIONAL_CONTEXT_MESSAGE: "Pull request: ${{ github.event.pull_request.number }} - https://github.com/kubeshop/botkube/pull/${{ github.event.pull_request.number }}"
+          PLUGINS_BINARIES_DIRECTORY: ${{ github.workspace }}/plugin-dist
+          CONFIG_PROVIDER_API_KEY: ${{ secrets.CONFIG_PROVIDER_API_KEY }}
+          CONFIG_PROVIDER_ENDPOINT: ${{ secrets.CONFIG_PROVIDER_ENDPOINT }}
+          CONFIG_PROVIDER_SLACK_WORKSPACE_TEAM_ID: ${{ secrets.CONFIG_PROVIDER_SLACK_WORKSPACE_TEAM_ID }}
+          CONFIG_PROVIDER_IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          CONFIG_PROVIDER_HELM_REPO_DIRECTORY: ${{ github.workspace }}/helm
+        run: |
+          KUBECONFIG=$(k3d kubeconfig write ${{ matrix.integration }}-test-cluster) \
+            make test-integration-${{ matrix.integration }}
+
+      - name: Dump cluster
+        if: ${{ failure() }}
+        uses: ./.github/actions/dump-cluster

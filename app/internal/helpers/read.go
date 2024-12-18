@@ -5,7 +5,7 @@ import (
 	"tool/app/internal/models"
 )
 
-func ReadFile(path string) (models.Workflow, error) {
+func ReadWorkflow(path string) (models.Workflow, error) {
 	yamlData, err := os.ReadFile(path)
 
 	if err != nil {
@@ -13,7 +13,7 @@ func ReadFile(path string) (models.Workflow, error) {
 	}
 
 	var workflow models.Workflow
-	if err := Unmarshal(yamlData, &workflow); err != nil {
+	if err := UnmarshalWorkflow(yamlData, &workflow); err != nil {
 		return models.Workflow{}, err
 	}
 

@@ -3,10 +3,9 @@ package helpers
 import (
 	"encoding/json"
 	"os"
-	"tool/app/internal/models"
 )
 
-func WriteJSONToFile(path string, data models.Statistics) error {
+func WriteJSONToFile(path string, data interface{}) error {
 	file, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		return err

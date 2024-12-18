@@ -1,5 +1,11 @@
 package models
 
+type GlobalStatistics struct {
+	Jobs       IntStatistics `json:"jobs"`
+	Steps      IntStatistics `json:"steps"`
+	Containers IntStatistics `json:"containers"`
+}
+
 type Statistics struct {
 	Workflow   WorkflowStatistics   `json:"workflow"`
 	Jobs       JobsStatistics       `json:"jobs"`
@@ -13,6 +19,7 @@ type WorkflowStatistics struct {
 	Events      IntStatistics         `json:"events"`
 	Permissions PermissionsStatistics `json:"permissions"`
 	Environment EnvironmentStatistics `json:"environment"`
+	Jobs        IntStatistics         `json:"jobs"`
 	Defaults    IntStatistics         `json:"defaults"`
 }
 
@@ -26,8 +33,9 @@ type JobsStatistics struct {
 	Defaults          IntStatistics         `json:"defaults"`
 	CustomContainers  IntStatistics         `json:"custom-containers"`
 	Services          IntStatistics         `json:"services"`
-	CustomWorkflows   IntStatistics         `json:"workflows"`
+	CustomWorkflows   IntStatistics         `json:"custom-workflows"`
 	Secrets           EnvironmentStatistics `json:"secrets"`
+	Steps             IntStatistics         `json:"steps"`
 	Count             IntStatistics         `json:"count"`
 }
 
@@ -39,9 +47,10 @@ type ContainersStatistics struct {
 
 type StepsStatistics struct {
 	Conditionals  IntStatistics         `json:"conditionals"`
-	CustomActions IntStatistics         `json:"custom-actions"`
+	CustomActions IntStatistics         `json:"custom-commands"`
 	RunScripts    IntStatistics         `json:"run-scripts"`
 	Environments  EnvironmentStatistics `json:"environments"`
+	Count         IntStatistics         `json:"count"`
 }
 
 // Permissions Statistics
