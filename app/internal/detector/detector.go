@@ -27,10 +27,15 @@ type Info struct {
 	CWE         int
 }
 
-func (d Detector) EvaluateRule(yamlFilePath string) ([]int, error) {
+func (d Detector) GetSeverity() string {
+	return severityMap[d.Info.Severity]
+}
+
+func (d Detector) EvaluateRule(yamlContent []byte) ([]int, error) {
 	ruleType := strings.Split(reflect.TypeOf(d.Rule).String(), ".")
+
 	if slices.Contains(operators, ruleType[len(ruleType)-1]) {
-		if err := d.Rule.Evaluate(yamlFilePath); err != nil {
+		if err := d.Rule.Evaluate(yamlContent); err != nil {
 			return nil, err
 		}
 
@@ -60,7 +65,7 @@ func (d Detector) EvaluateRule(yamlFilePath string) ([]int, error) {
 	for len(stack) > 0 {
 		op := stack[len(stack)-1]
 
-		if err := op.Evaluate(yamlFilePath); err != nil {
+		if err := op.Evaluate(yamlContent); err != nil {
 			return []int{}, err
 		}
 

@@ -16,9 +16,9 @@ permissions:
   tests: none
 
 defaults:
-  ciao: 1
+  ciao: eva
   ciao1: ciao
-  run:
+  eva:
     shell: ciao
     ciao: ciao
     bho:
@@ -33,6 +33,7 @@ env:
   VAR1: ciao
   VAR2: ciao-${{}}
   VAR3: ciao ${{github}}
+  VAR4: ${{ secrets.ciao }}
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -54,7 +55,7 @@ jobs:
     if: "github.repository == 'octo-org/octo-repo-prod'"
 
     # The type of runner that the job will run on
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     environment:
       name: production_environment
@@ -90,7 +91,8 @@ jobs:
         ports:
           - 6379/tcp
 
-    secrets: inherit
+    secrets:
+      Test1: ${{github.token}}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
@@ -101,9 +103,28 @@ jobs:
         uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          script: "${{ env.test }}"
+        run: ${{env.ciao}} ${{ github.event.pages.ciao.page_name }}
+
+      - uses: dawidd6/action-download-artifact
+        with:
+          run_id: ciao
 
   release:
+    runs-on:
+      - self-hosted
+      - ciao
+      - ciao
     permissions:
       read: read
       write: write
     env: inherit
+    environment: test
+    container:
+      test: test
+    secrets: inherit
+    steps:
+      - uses: ok
+      - uses: ok
+      - uses: ok
+      - uses: ok

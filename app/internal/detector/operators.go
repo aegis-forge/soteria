@@ -8,11 +8,11 @@ import (
 	"strings"
 )
 
-var operators = []string{"Match", "Equals"}
+var operators = []string{"Match", "Equals", "NotIn"}
 var logicalOperators = []string{"And", "Or"}
 
 type Operator interface {
-	Evaluate(yamlFilePath string) error
+	Evaluate(yamlContent []byte) error
 	GetValue() bool
 	GetLines() []int
 	GetChildren() []Operator
@@ -33,12 +33,12 @@ type operator struct {
 
 type Equals operator
 
-func (o *Equals) Evaluate(yamlFilePath string) error {
+func (o *Equals) Evaluate(yamlContent []byte) error {
 	if reflect.TypeOf(o.LHS).Kind() != reflect.String && reflect.TypeOf(o.RHS).Kind() != reflect.Slice {
 		return errors.New("expected strings as RHS and LHS")
 	}
 
-	toCompare, lines, err := resolveYAMLPath(o.LHS.(string), yamlFilePath)
+	toCompare, lines, err := ResolveYAMLPath(o.LHS.(string), yamlContent)
 
 	if err != nil {
 		return err
@@ -80,10 +80,8 @@ func (o *Equals) ClearResults() {
 
 type Match operator
 
-func (o *Match) Evaluate(yamlFilePath string) error {
-	toCompare, lines, err := resolveYAMLPath(o.LHS.(string), yamlFilePath)
-
-	//log.Print(o.RHS, " -> ", toCompare)
+func (o *Match) Evaluate(yamlContent []byte) error {
+	toCompare, lines, err := ResolveYAMLPath(o.LHS.(string), yamlContent)
 
 	if err != nil {
 		return err
@@ -121,9 +119,48 @@ func (o *Match) ClearResults() {
 	o.value = false
 }
 
-// =================
-// ==== IsEMPTY ====
-// =================
+// ================
+// ==== NOT_IN ====
+// ================
+
+type NotIn operator
+
+func (o *NotIn) Evaluate(yamlContent []byte) error {
+	contains := false
+	toCompare, _, err := ResolveYAMLPath(o.LHS.(string), yamlContent)
+
+	if err != nil {
+		return err
+	}
+
+	for _, res := range toCompare {
+		if res == o.RHS {
+			contains = true
+		}
+	}
+
+	if !contains {
+		o.value = true
+	}
+
+	return nil
+}
+
+func (o *NotIn) GetValue() bool {
+	return o.value
+}
+
+func (o *NotIn) GetLines() []int {
+	return nil
+}
+
+func (o *NotIn) GetChildren() []Operator {
+	return nil
+}
+
+func (o *NotIn) ClearResults() {
+	o.value = false
+}
 
 // =============
 // ==== AND ====
@@ -131,7 +168,7 @@ func (o *Match) ClearResults() {
 
 type And operator
 
-func (o *And) Evaluate(yamlFilePath string) error {
+func (o *And) Evaluate(yamlContent []byte) error {
 	lhs := o.LHS.(Operator)
 	rhs := o.RHS.(Operator)
 
@@ -139,13 +176,13 @@ func (o *And) Evaluate(yamlFilePath string) error {
 	rhsType := strings.Split(reflect.TypeOf(rhs).String(), ".")
 
 	if slices.Contains(operators, lhsType[len(lhsType)-1]) {
-		if err := lhs.Evaluate(yamlFilePath); err != nil {
+		if err := lhs.Evaluate(yamlContent); err != nil {
 			return err
 		}
 	}
 
 	if slices.Contains(operators, rhsType[len(rhsType)-1]) {
-		if err := rhs.Evaluate(yamlFilePath); err != nil {
+		if err := rhs.Evaluate(yamlContent); err != nil {
 			return err
 		}
 	}
@@ -195,7 +232,7 @@ func (o *And) ClearResults() {
 
 type Or operator
 
-func (o *Or) Evaluate(yamlFilePath string) error {
+func (o *Or) Evaluate(yamlContent []byte) error {
 	lhs := o.LHS.(Operator)
 	rhs := o.RHS.(Operator)
 
@@ -203,13 +240,13 @@ func (o *Or) Evaluate(yamlFilePath string) error {
 	rhsType := strings.Split(reflect.TypeOf(rhs).String(), ".")
 
 	if slices.Contains(operators, lhsType[len(lhsType)-1]) {
-		if err := lhs.Evaluate(yamlFilePath); err != nil {
+		if err := lhs.Evaluate(yamlContent); err != nil {
 			return err
 		}
 	}
 
 	if slices.Contains(operators, rhsType[len(rhsType)-1]) {
-		if err := rhs.Evaluate(yamlFilePath); err != nil {
+		if err := rhs.Evaluate(yamlContent); err != nil {
 			return err
 		}
 	}

@@ -10,12 +10,15 @@ on:
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-permissions: read-all
+permissions:
+  test1: read
+  write: write
+  none: none
 
 defaults:
   ciao: ciao
   run:
-    shell: ciao
+    cars: ciao
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -23,7 +26,9 @@ concurrency:
 
 
 env:
-  VAR: ciao
+  VAR: ${{test}}
+  VAR1: ${{ test1 }}
+  VAR2: should not get
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:

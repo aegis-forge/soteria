@@ -2,6 +2,8 @@ package detectors
 
 import "tool/app/internal/detector"
 
+var regexCache = `R|release`
+
 var CachingInRelease = detector.Detector{
 	Name: "caching-in-release",
 	Info: detector.Info{
@@ -17,21 +19,21 @@ var CachingInRelease = detector.Detector{
 		RHS: &detector.Or{
 			LHS: &detector.Match{
 				LHS: "$.name",
-				RHS: "R|release?",
+				RHS: regexCache,
 			},
 			RHS: &detector.Or{
 				LHS: &detector.Match{
 					LHS: "$.on..branches[*]",
-					RHS: "R|release?",
+					RHS: regexCache,
 				},
 				RHS: &detector.Or{
 					LHS: &detector.Match{
 						LHS: "$.on..types[*]",
-						RHS: "R|release?",
+						RHS: regexCache,
 					},
 					RHS: &detector.Match{
 						LHS: "$.on..tags[*]",
-						RHS: "R|release?",
+						RHS: regexCache,
 					},
 				},
 			},

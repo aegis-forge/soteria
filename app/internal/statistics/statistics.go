@@ -1,149 +1,193 @@
 package statistics
 
 import (
-	"slices"
-	"tool/app/internal/helpers"
-	"tool/app/internal/models"
+	"encoding/json"
+	"fmt"
+	"github.com/jedib0t/go-pretty/v6/table"
+	"os"
+	"path/filepath"
+	"strings"
+	"tool/app/detectors"
 )
 
-func AggregateStatistics(statistics []models.Statistics) models.GlobalStatistics {
-	var jobs []int
-	var steps []int
-	var containers []int
+// ====================
+// ==== STATISTICS ====
+// ====================
 
-	for _, stat := range statistics {
-		jobs = append(jobs, stat.Jobs.Count.Total)
-		steps = append(steps, stat.Steps.Count.Total)
-		containers = append(containers, stat.Containers.Count.Total)
-	}
-
-	return models.GlobalStatistics{
-		Jobs:       BuildIntStatistics(jobs),
-		Steps:      BuildIntStatistics(steps),
-		Containers: BuildIntStatistics(containers),
-	}
+type Statistics struct {
+	WorkflowName string    `json:"workflow"`
+	Structure    Structure `json:"structure"`
+	Detectors    Detectors `json:"detectors"`
 }
 
-func ComputeStatistics(workflow models.Workflow) models.Statistics {
-	var steps []models.Step
-	var containers []models.Container
+func (s *Statistics) Init() {
+	s.Structure.Workflow = map[string]Group{}
+	s.Structure.Jobs = map[string]Group{}
+	s.Structure.Steps = map[string]Group{}
+	s.Structure.Containers = map[string]Group{}
 
-	for _, job := range workflow.Jobs {
-		steps = slices.Concat(steps, job.Steps)
+	s.Detectors.Frequencies = map[string]Group{}
+	s.Detectors.Severities = map[string]Group{}
 
-		if helpers.CheckPresence(job.Container) == 1 {
-			containers = append(containers, job.Container)
+	path := strings.TrimSuffix(s.WorkflowName, filepath.Ext(s.WorkflowName))
+	filenameArr := strings.Split(path, "/")
+	s.WorkflowName = filenameArr[len(filenameArr)-1]
+}
+
+func (s *Statistics) Compute(yamlContent []byte, lines map[string][]int, detects detectors.Detectors) error {
+	if err := s.Structure.Compute(yamlContent, s.WorkflowName); err != nil {
+		return err
+	}
+
+	if err := s.Detectors.Compute(yamlContent, lines, detects); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *Statistics) SaveToFile() error {
+	contents, err := json.MarshalIndent(s, "", "  ")
+
+	if err != nil {
+		return err
+	}
+
+	wd, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	fullPath := filepath.Join(wd + "/out/" + s.WorkflowName + ".json")
+
+	if err = os.WriteFile(fullPath, contents, 0644); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func GenerateTables(statistics []Statistics, maxRows int) {
+	t := table.NewWriter()
+	t.SetOutputMirror(os.Stdout)
+	t.SetTitle("Statistics per Workflow – Structure")
+	t.AppendHeader(table.Row{"NAME", "JOBS", "STEPS", "CONTAINERS"})
+	t.AppendRows(createRows(statistics, maxRows))
+	t.SetIndexColumn(1)
+	t.SetStyle(table.StyleColoredBlueWhiteOnBlack)
+	t.Render()
+
+	if len(statistics) > maxRows {
+		fmt.Println("...only showing first ", maxRows, " rows...")
+	}
+
+	fmt.Println()
+
+	td := table.NewWriter()
+	td.SetOutputMirror(os.Stdout)
+	td.SetTitle("Statistics per Workflow – Detectors")
+	td.AppendHeader(table.Row{"", "INFO", "WARN", "LOW", "MED", "HIGH", "CRIT"})
+	td.AppendRows(createRowsDetectors(statistics, maxRows))
+	td.SetIndexColumn(1)
+	td.SetStyle(table.StyleColoredRedWhiteOnBlack)
+	td.Render()
+
+	if len(statistics) > maxRows {
+		fmt.Println("...only showing first ", maxRows, " rows...")
+	}
+
+	fmt.Println()
+}
+
+func createRows(statistics []Statistics, maxRows int) []table.Row {
+	var rows []table.Row
+
+	for ind, stat := range statistics {
+		if ind >= maxRows {
+			break
 		}
+
+		rows = append(rows, table.Row{
+			stat.WorkflowName,
+			stat.Structure.Workflow["jobs"].Frequencies,
+			stat.Structure.Jobs["steps"].Frequencies,
+			stat.Structure.Jobs["containers"].Frequencies,
+		})
 	}
 
-	return models.Statistics{
-		Workflow:   computeWorkflowStatistics(workflow),
-		Jobs:       computeJobsStatistics(workflow.Jobs),
-		Steps:      computeStepsStatistics(steps),
-		Containers: computeContainersStatistics(containers),
-	}
+	return rows
 }
 
-func computeWorkflowStatistics(workflow models.Workflow) models.WorkflowStatistics {
-	return models.WorkflowStatistics{
-		Events:      eventsCount(workflow.On),
-		Permissions: permissionsCount(workflow.Permissions),
-		Environment: environmentCount(workflow.Env),
-		Jobs:        models.IntStatistics{Total: len(workflow.Jobs)},
-		Defaults:    defaultsCount(workflow.Defaults),
+func createRowsDetectors(statistics []Statistics, maxRows int) []table.Row {
+	var rows []table.Row
+
+	for ind, stat := range statistics {
+		if ind >= maxRows {
+			break
+		}
+
+		row := table.Row{}
+
+		row = append(row, stat.WorkflowName)
+
+		for _, severity := range severitiesNames {
+			if el, ok := stat.Detectors.Severities[severity]; ok {
+				row = append(row, el.Frequencies)
+			} else {
+				row = append(row, 0)
+			}
+		}
+
+		rows = append(rows, row)
 	}
+
+	return rows
 }
 
-func computeJobsStatistics(jobs map[string]models.Job) models.JobsStatistics {
-	var permissions []models.PermissionsStatistics
-	var blocked []models.IntStatistics
-	var conditionals []models.IntStatistics
-	var customRunners []models.IntStatistics
-	var localEnvs []models.IntStatistics
-	var environments []models.EnvironmentStatistics
-	var defaults []models.IntStatistics
-	var customContainers []models.IntStatistics
-	var services []models.IntStatistics
-	var customWorkflows []models.IntStatistics
-	var secrets []models.EnvironmentStatistics
-	var steps []models.IntStatistics
+// ===================
+// ==== STRUCTURE ====
+// ===================
 
-	count := 0
-
-	for _, job := range jobs {
-		permissions = append(permissions, permissionsCount(job.Permissions))
-		blocked = append(blocked, models.IntStatistics{Total: len(job.Needs)})
-		conditionals = append(conditionals, models.IntStatistics{Total: helpers.CheckPresence(job.If)})
-		customRunners = append(customRunners, models.IntStatistics{Total: helpers.CheckPresence(job.RunsOn)})
-		localEnvs = append(localEnvs, models.IntStatistics{Total: helpers.CheckPresence(job.Environment)})
-		environments = append(environments, environmentCount(job.Env))
-		defaults = append(defaults, models.IntStatistics{Total: len(job.Defaults)})
-		customContainers = append(customContainers, models.IntStatistics{Total: helpers.CheckPresence(job.Container)})
-		services = append(services, models.IntStatistics{Total: len(job.Services)})
-		customWorkflows = append(customWorkflows, models.IntStatistics{Total: helpers.CheckPresence(job.Uses)})
-		secrets = append(secrets, environmentCount(job.Secrets))
-		steps = append(steps, models.IntStatistics{Total: len(job.Steps)})
-		count++
-	}
-
-	return models.JobsStatistics{
-		Permissions:       permissionsArrayCount(permissions),
-		Blocked:           intStatisticsArrayCount(blocked),
-		Conditionals:      intStatisticsArrayCount(conditionals),
-		CustomRunners:     intStatisticsArrayCount(customRunners),
-		LocalEnvironments: intStatisticsArrayCount(localEnvs),
-		Environments:      environmentArrayCount(environments),
-		Defaults:          intStatisticsArrayCount(defaults),
-		CustomContainers:  intStatisticsArrayCount(customContainers),
-		Services:          intStatisticsArrayCount(services),
-		CustomWorkflows:   intStatisticsArrayCount(customWorkflows),
-		Secrets:           environmentArrayCount(secrets),
-		Steps:             intStatisticsArrayCount(steps),
-		Count:             models.IntStatistics{Total: count},
-	}
+type Structure struct {
+	Workflow   map[string]Group `json:"workflows"`
+	Jobs       map[string]Group `json:"jobs"`
+	Steps      map[string]Group `json:"steps"`
+	Containers map[string]Group `json:"containers"`
 }
 
-func computeStepsStatistics(steps []models.Step) models.StepsStatistics {
-	var conditionals []models.IntStatistics
-	var customActions []models.IntStatistics
-	var runScripts []models.IntStatistics
-	var environments []models.EnvironmentStatistics
-
-	count := 0
-
-	for _, step := range steps {
-		conditionals = append(conditionals, models.IntStatistics{Total: helpers.CheckPresence(step.If)})
-		customActions = append(customActions, models.IntStatistics{Total: helpers.CheckPresence(step.Uses)})
-		runScripts = append(runScripts, models.IntStatistics{Total: helpers.CheckPresence(step.Run)})
-		environments = append(environments, environmentCount(step.Env))
-		count++
+func (s *Structure) Compute(yamlContent []byte, workflowName string) error {
+	if workflow, err := computeWorkflows(yamlContent, workflowName); err == nil {
+		s.Workflow = workflow
+	} else {
+		return err
 	}
 
-	return models.StepsStatistics{
-		Conditionals:  intStatisticsArrayCount(conditionals),
-		CustomActions: intStatisticsArrayCount(customActions),
-		RunScripts:    intStatisticsArrayCount(runScripts),
-		Environments:  environmentArrayCount(environments),
-		Count:         models.IntStatistics{Total: count},
+	if jobs, err := computeJobs(yamlContent); err == nil {
+		s.Jobs = jobs
+	} else {
+		return err
 	}
+
+	return nil
 }
 
-func computeContainersStatistics(containers []models.Container) models.ContainersStatistics {
-	var credentials []models.EnvironmentStatistics
-	var environments []models.EnvironmentStatistics
+// ===================
+// ==== DETECTORS ====
+// ===================
 
-	count := 0
+type Detectors struct {
+	Severities  map[string]Group `json:"severities"`
+	Frequencies map[string]Group `json:"frequencies"`
+}
 
-	for _, container := range containers {
-		credentials = append(credentials, environmentCount(container.Credentials))
-		environments = append(environments, environmentCount(container.Env))
-
-		count++
+func (d *Detectors) Compute(yamlContent []byte, lines map[string][]int, detects detectors.Detectors) error {
+	if severities, frequencies, err := computeDetectors(yamlContent, lines, detects); err == nil {
+		d.Severities = severities
+		d.Frequencies = frequencies
+	} else {
+		return err
 	}
 
-	return models.ContainersStatistics{
-		Credentials:  environmentArrayCount(credentials),
-		Environments: environmentArrayCount(environments),
-		Count:        models.IntStatistics{Total: count},
-	}
+	return nil
 }

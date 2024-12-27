@@ -1,21 +1,21 @@
 package helpers
 
 import (
-	"os"
-	"tool/app/internal/models"
+	"bufio"
+	"io"
 )
 
-func ReadWorkflow(path string) (models.Workflow, error) {
-	yamlData, err := os.ReadFile(path)
+func ReadLine(r io.Reader, lineNum int) (string, error) {
+	lastLine := 0
+	sc := bufio.NewScanner(r)
 
-	if err != nil {
-		return models.Workflow{}, err
+	for sc.Scan() {
+		lastLine++
+
+		if lastLine == lineNum {
+			return sc.Text(), sc.Err()
+		}
 	}
 
-	var workflow models.Workflow
-	if err := UnmarshalWorkflow(yamlData, &workflow); err != nil {
-		return models.Workflow{}, err
-	}
-
-	return workflow, nil
+	return "", io.EOF
 }
