@@ -15,16 +15,19 @@ var UnsafeArtifactDownload = detector.Detector{
 			RHS: "dawidd6/action-download-artifact",
 		},
 		RHS: &detector.Or{
-			LHS: &detector.NotIn{
+			LHS: &detector.Exists{
+				NOT: true,
 				LHS: "$.jobs..steps[*].with[*]~",
 				RHS: "path",
 			},
 			RHS: &detector.And{
-				LHS: &detector.NotIn{
+				LHS: &detector.Exists{
+					NOT: true,
 					LHS: "$.jobs..steps[*].with[*]~",
 					RHS: "commit",
 				},
-				RHS: &detector.NotIn{
+				RHS: &detector.Exists{
+					NOT: true,
 					LHS: "$.jobs..steps[*].with[*]~",
 					RHS: "run_id",
 				},

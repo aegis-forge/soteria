@@ -2,6 +2,9 @@ package detectors
 
 import (
 	"errors"
+	"fmt"
+	"strconv"
+	"strings"
 	"tool/app/internal/detector"
 )
 
@@ -49,8 +52,17 @@ func (d *Detectors) AddDetector(detector detector.Detector) error {
 	return nil
 }
 
-func (d *Detectors) EvaluateWorkflow(yamlContent []byte) (map[string][]int, error) {
+func (d *Detectors) EvaluateWorkflow(workflowName string, yamlContent []byte) (map[string][]int, error) {
 	var results = make(map[string][]int)
+	var severitiesCount = make(map[int]int)
+
+	fmt.Print(
+		"\033[97;1m",
+		strings.Repeat("=", len(workflowName))+"\n",
+		workflowName+"\n",
+		strings.Repeat("=", len(workflowName))+"\n\n",
+		"\033[0m",
+	)
 
 	for key, value := range d.detectorsMap {
 		lines, err := value.EvaluateRule(yamlContent)
@@ -59,11 +71,35 @@ func (d *Detectors) EvaluateWorkflow(yamlContent []byte) (map[string][]int, erro
 			return nil, err
 		}
 
+		if _, ok := severitiesCount[value.Info.Severity]; ok {
+			severitiesCount[value.Info.Severity] += len(value.Rule.GetLines())
+		} else {
+			severitiesCount[value.Info.Severity] = len(value.Rule.GetLines())
+		}
+
+		value.PrintResults(yamlContent)
+
 		if _, ok := results[key]; !ok {
 			results[key] = lines
 		}
 	}
 
+	i := 0
+	fmt.Print("Results: ")
+	for severity, count := range severitiesCount {
+		fmt.Print(detector.ColorMap[severity]+strings.ToTitle(detector.SeverityMap[severity]),
+			"\u001B[0m "+strconv.Itoa(count),
+		)
+
+		i++
+		if i != len(severitiesCount) {
+			fmt.Print("; ")
+		} else {
+			fmt.Print("\n")
+		}
+	}
+
+	fmt.Println()
 	d.clearDetectors()
 
 	return results, nil

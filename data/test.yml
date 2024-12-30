@@ -10,11 +10,6 @@ on:
     branches: [ "master" ]
     tags: [ "master", "release" ]
 
-permissions:
-  actions: read
-  others: write
-  tests: none
-
 defaults:
   ciao: eva
   ciao1: ciao

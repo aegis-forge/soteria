@@ -2,7 +2,6 @@ package statistics
 
 import (
 	"gonum.org/v1/gonum/stat"
-	"log"
 	"slices"
 	"tool/app/internal/detector"
 	"tool/app/internal/helpers"
@@ -21,7 +20,7 @@ func (g *Group) GetOccurrences(yamlPath string, yamlContent []byte) ([]string, i
 	var occurrences []string
 	var frequencies int
 
-	res, _, err := detector.ResolveYAMLPath(yamlPath, yamlContent)
+	res, _, err := detector.Resolve(yamlPath, yamlContent)
 
 	if err != nil {
 		return nil, 0, err
@@ -64,7 +63,7 @@ func (g *Group) AddManually(occurrences []string, frequencies int) {
 }
 
 func CountOccurrences(yamlPath string, yamlContent []byte) int {
-	res, _, err := detector.ResolveYAMLPath(yamlPath, yamlContent)
+	res, _, err := detector.Resolve(yamlPath, yamlContent)
 
 	if err != nil {
 		return 0
@@ -74,18 +73,14 @@ func CountOccurrences(yamlPath string, yamlContent []byte) int {
 }
 
 func checkIfExists(path string, element string, yamlContent []byte) (bool, int, error) {
-	res, _, err := detector.ResolveYAMLPath(path, yamlContent)
+	res, _, err := detector.Resolve(path, yamlContent)
 
 	if err != nil {
 		return false, 0, err
 	}
 
 	if element == "*" {
-		res1, _, _ := detector.ResolveYAMLPath(path+"[*]", yamlContent)
-
-		for _, el := range res1 {
-			log.Print(path, " ", el)
-		}
+		res1, _, _ := detector.Resolve(path+"[*]", yamlContent)
 
 		return len(helpers.RemoveEmptyStrings(res)) > 0 || len(helpers.RemoveEmptyStrings(res1)) > 0, 1, nil
 	} else if slices.Contains(res, element) {

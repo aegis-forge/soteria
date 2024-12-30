@@ -78,7 +78,7 @@ func parseAndAnalyze(path string, stats *[]statistics.Statistics, flags models.F
 			return err
 		}
 
-		linesWorkflow, err := detects.EvaluateWorkflow(yamlContent)
+		linesWorkflow, err := detects.EvaluateWorkflow(path, yamlContent)
 
 		if err != nil {
 			return err

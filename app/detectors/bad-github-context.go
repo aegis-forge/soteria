@@ -10,6 +10,7 @@ var BadGithubContext = detector.Detector{
 	Name: "bad-github-context",
 	Info: detector.Info{
 		Description: "Using the Github context env variables in run sections can lead to secret disclosure through code injection.",
+		Message:     "Do not use GitHub context variables in scripts",
 		Severity:    4,
 		CWE:         82,
 	},

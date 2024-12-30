@@ -3,9 +3,10 @@ package detector
 import (
 	"github.com/vmware-labs/yaml-jsonpath/pkg/yamlpath"
 	"gopkg.in/yaml.v3"
+	"slices"
 )
 
-func ResolveYAMLPath(yamlPath string, yamlContent []byte) ([]string, []int, error) {
+func Resolve(yamlPath string, yamlContent []byte) ([]string, []int, error) {
 	path, err := yamlpath.NewPath(yamlPath)
 
 	if err != nil {
@@ -33,4 +34,14 @@ func ResolveYAMLPath(yamlPath string, yamlContent []byte) ([]string, []int, erro
 	}
 
 	return nodeValues, lines, nil
+}
+
+func CheckExistence(yamlPath string, toCheck string, yamlContent []byte) (bool, error) {
+	res, _, err := Resolve(yamlPath, yamlContent)
+
+	if err != nil {
+		return false, err
+	}
+
+	return slices.Contains(res, toCheck), nil
 }

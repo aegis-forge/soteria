@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-var operators = []string{"Match", "Equals", "NotIn"}
+var operators = []string{"Match", "Equals", "Exists"}
 var logicalOperators = []string{"And", "Or"}
 
 type Operator interface {
@@ -23,6 +23,7 @@ type operator struct {
 	value bool
 	lines []int
 
+	NOT bool
 	LHS interface{}
 	RHS interface{}
 }
@@ -38,7 +39,7 @@ func (o *Equals) Evaluate(yamlContent []byte) error {
 		return errors.New("expected strings as RHS and LHS")
 	}
 
-	toCompare, lines, err := ResolveYAMLPath(o.LHS.(string), yamlContent)
+	toCompare, lines, err := Resolve(o.LHS.(string), yamlContent)
 
 	if err != nil {
 		return err
@@ -81,7 +82,7 @@ func (o *Equals) ClearResults() {
 type Match operator
 
 func (o *Match) Evaluate(yamlContent []byte) error {
-	toCompare, lines, err := ResolveYAMLPath(o.LHS.(string), yamlContent)
+	toCompare, lines, err := Resolve(o.LHS.(string), yamlContent)
 
 	if err != nil {
 		return err
@@ -120,46 +121,46 @@ func (o *Match) ClearResults() {
 }
 
 // ================
-// ==== NOT_IN ====
+// ==== EXISTS ====
 // ================
 
-type NotIn operator
+type Exists operator
 
-func (o *NotIn) Evaluate(yamlContent []byte) error {
-	contains := false
-	toCompare, _, err := ResolveYAMLPath(o.LHS.(string), yamlContent)
+func (o *Exists) Evaluate(yamlContent []byte) error {
+	exists, err := CheckExistence(o.LHS.(string), o.RHS.(string), yamlContent)
 
 	if err != nil {
 		return err
 	}
 
-	for _, res := range toCompare {
-		if res == o.RHS {
-			contains = true
-		}
+	if o.NOT {
+		o.value = !exists
+	} else {
+		o.value = exists
 	}
 
-	if !contains {
-		o.value = true
+	if o.value {
+		o.lines = []int{1}
 	}
 
 	return nil
 }
 
-func (o *NotIn) GetValue() bool {
+func (o *Exists) GetValue() bool {
 	return o.value
 }
 
-func (o *NotIn) GetLines() []int {
+func (o *Exists) GetLines() []int {
+	return o.lines
+}
+
+func (o *Exists) GetChildren() []Operator {
 	return nil
 }
 
-func (o *NotIn) GetChildren() []Operator {
-	return nil
-}
-
-func (o *NotIn) ClearResults() {
+func (o *Exists) ClearResults() {
 	o.value = false
+	o.lines = []int{}
 }
 
 // =============

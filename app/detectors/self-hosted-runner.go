@@ -6,6 +6,7 @@ var SelfHostedRunner = detector.Detector{
 	Name: "self-hosted-runner",
 	Info: detector.Info{
 		Description: "When using self-hosted runners (especially in public repos), a user could fork the repo and send malicious pull requests to try and escape the sandbox.",
+		Message:     "Self-hosted runners should never be used in public repos",
 		Severity:    3,
 		CWE:         -1,
 	},
