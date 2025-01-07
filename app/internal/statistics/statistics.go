@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-	"tool/app/detectors"
+	"tool/app/internal/detectors"
 )
 
 // ====================
@@ -69,6 +69,8 @@ func (s *Statistics) SaveToFile() error {
 }
 
 func GenerateTables(statistics []Statistics, maxRows int) {
+	fmt.Println()
+
 	t := table.NewWriter()
 	t.SetOutputMirror(os.Stdout)
 	t.SetTitle("Statistics per Workflow – Structure")
@@ -119,10 +121,10 @@ func createRows(statistics []Statistics, maxRows int) []table.Row {
 	return rows
 }
 
-func createRowsDetectors(statistics []Statistics, maxRows int) []table.Row {
+func createRowsDetectors(stats []Statistics, maxRows int) []table.Row {
 	var rows []table.Row
 
-	for ind, stat := range statistics {
+	for ind, stat := range stats {
 		if ind >= maxRows {
 			break
 		}
@@ -131,7 +133,7 @@ func createRowsDetectors(statistics []Statistics, maxRows int) []table.Row {
 
 		row = append(row, stat.WorkflowName)
 
-		for _, severity := range severitiesNames {
+		for _, severity := range SeveritiesNames {
 			if el, ok := stat.Detectors.Severities[severity]; ok {
 				row = append(row, el.Frequencies)
 			} else {

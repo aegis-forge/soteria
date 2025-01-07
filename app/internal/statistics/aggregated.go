@@ -8,31 +8,31 @@ import (
 	"path/filepath"
 )
 
-var severitiesNames = []string{"info", "warning", "low", "medium", "high", "critical"}
+var SeveritiesNames = []string{"info", "warning", "low", "medium", "high", "critical"}
 
-// =====================
-// ==== ASTATISTICS ====
-// =====================
+// =======================
+// ==== AggSTATISTICS ====
+// =======================
 
-type AStatistics struct {
-	WorkflowName string     `json:"workflow"`
-	Structure    AStructure `json:"structure"`
-	Detectors    ADetectors `json:"detectors"`
+type AggStatistics struct {
+	WorkflowName string       `json:"workflow"`
+	Structure    AggStructure `json:"structure"`
+	Detectors    AggDetectors `json:"detectors"`
 }
 
-func (a *AStatistics) Init() {
+func (a *AggStatistics) Init() {
 	a.WorkflowName = "global"
 
-	a.Structure.Workflow = map[string]AGroup{}
-	a.Structure.Jobs = map[string]AGroup{}
-	a.Structure.Steps = map[string]AGroup{}
-	a.Structure.Containers = map[string]AGroup{}
+	a.Structure.Workflow = map[string]AggGroup{}
+	a.Structure.Jobs = map[string]AggGroup{}
+	a.Structure.Steps = map[string]AggGroup{}
+	a.Structure.Containers = map[string]AggGroup{}
 
-	a.Detectors.Frequencies = map[string]AGroup{}
-	a.Detectors.Severities = map[string]AGroup{}
+	a.Detectors.Frequencies = map[string]AggGroup{}
+	a.Detectors.Severities = map[string]AggGroup{}
 }
 
-func (a *AStatistics) Aggregate(stats []Statistics) {
+func (a *AggStatistics) Aggregate(stats []Statistics) {
 	aggregated := Statistics{WorkflowName: "global"}
 	aggregated.Init()
 
@@ -44,21 +44,7 @@ func (a *AStatistics) Aggregate(stats []Statistics) {
 	}
 }
 
-func aggregateStats(toAggregate map[string]Group, aggregated map[string]AGroup) {
-	for stat, group := range toAggregate {
-		if el, ok := aggregated[stat]; !ok {
-			aggregated[stat] = AGroup{
-				Occurrences: [][]string{group.Occurrences},
-				Frequencies: []int{group.Frequencies},
-			}
-		} else {
-			el.Append(group.Occurrences, group.Frequencies)
-			aggregated[stat] = el
-		}
-	}
-}
-
-func (a *AStatistics) SaveToFile() error {
+func (a *AggStatistics) SaveToFile(path string) error {
 	contents, err := json.Marshal(a)
 
 	if err != nil {
@@ -73,6 +59,10 @@ func (a *AStatistics) SaveToFile() error {
 
 	fullPath := filepath.Join(wd + "/out/" + a.WorkflowName + ".json")
 
+	if path != "" {
+		fullPath = path + "/" + a.WorkflowName + ".json"
+	}
+
 	if err = os.WriteFile(fullPath, contents, 0644); err != nil {
 		return err
 	}
@@ -80,7 +70,21 @@ func (a *AStatistics) SaveToFile() error {
 	return nil
 }
 
-func GenerateAggregatedTables(aggregated AStatistics) {
+func aggregateStats(toAggregate map[string]Group, aggregated map[string]AggGroup) {
+	for stat, group := range toAggregate {
+		if el, ok := aggregated[stat]; !ok {
+			aggregated[stat] = AggGroup{
+				Occurrences: [][]string{group.Occurrences},
+				Frequencies: []int{group.Frequencies},
+			}
+		} else {
+			el.Append(group.Occurrences, group.Frequencies)
+			aggregated[stat] = el
+		}
+	}
+}
+
+func GenerateAggregatedTables(aggregated AggStatistics) {
 	count := aggregated.Structure.Workflow["count"]
 	jobs := aggregated.Structure.Workflow["jobs"]
 	steps := aggregated.Structure.Jobs["steps"]
@@ -114,11 +118,11 @@ func GenerateAggregatedTables(aggregated AStatistics) {
 	td.Render()
 }
 
-func createARows(stats map[string]AGroup, severities bool) []table.Row {
+func createARows(stats map[string]AggGroup, severities bool) []table.Row {
 	var row []table.Row
 
 	if severities {
-		for _, key := range severitiesNames {
+		for _, key := range SeveritiesNames {
 			stat := stats[key]
 
 			if stat.Count() > 0 {
@@ -140,22 +144,22 @@ func createARows(stats map[string]AGroup, severities bool) []table.Row {
 	return row
 }
 
-// ===================
-// ==== STRUCTURE ====
-// ===================
+// ======================
+// ==== AggSTRUCTURE ====
+// ======================
 
-type AStructure struct {
-	Workflow   map[string]AGroup `json:"workflows"`
-	Jobs       map[string]AGroup `json:"jobs"`
-	Steps      map[string]AGroup `json:"steps"`
-	Containers map[string]AGroup `json:"containers"`
+type AggStructure struct {
+	Workflow   map[string]AggGroup `json:"workflows"`
+	Jobs       map[string]AggGroup `json:"jobs"`
+	Steps      map[string]AggGroup `json:"steps"`
+	Containers map[string]AggGroup `json:"containers"`
 }
 
-// ===================
-// ==== DETECTORS ====
-// ===================
+// ======================
+// ==== AggDETECTORS ====
+// ======================
 
-type ADetectors struct {
-	Severities  map[string]AGroup `json:"severities"`
-	Frequencies map[string]AGroup `json:"frequencies"`
+type AggDetectors struct {
+	Severities  map[string]AggGroup `json:"severities"`
+	Frequencies map[string]AggGroup `json:"frequencies"`
 }

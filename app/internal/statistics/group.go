@@ -26,8 +26,6 @@ func (g *Group) GetOccurrences(yamlPath string, yamlContent []byte) ([]string, i
 		return nil, 0, err
 	}
 
-	//log.Print(yamlPath, " ", res)
-
 	for _, el := range res {
 		if el != "" {
 			frequencies++
@@ -98,16 +96,16 @@ func checkIfExists(path string, element string, yamlContent []byte) (bool, int, 
 	return false, 0, nil
 }
 
-// ================
-// ==== AGROUP ====
-// ================
+// ==================
+// ==== AggGROUP ====
+// ==================
 
-type AGroup struct {
+type AggGroup struct {
 	Occurrences [][]string `json:"occurrences"`
 	Frequencies []int      `json:"frequencies"`
 }
 
-func (g *AGroup) Append(occurrences []string, frequencies int) {
+func (g *AggGroup) Append(occurrences []string, frequencies int) {
 	if g.Occurrences == nil {
 		g.Occurrences = make([][]string, 0)
 	}
@@ -116,7 +114,7 @@ func (g *AGroup) Append(occurrences []string, frequencies int) {
 	g.Frequencies = append(g.Frequencies, frequencies)
 }
 
-func (g *AGroup) Count() int {
+func (g *AggGroup) Count() int {
 	total := 0
 
 	for _, frequencies := range g.Frequencies {
@@ -126,19 +124,19 @@ func (g *AGroup) Count() int {
 	return total
 }
 
-func (g *AGroup) Min() int {
+func (g *AggGroup) Min() int {
 	return slices.Min(g.Frequencies)
 }
 
-func (g *AGroup) Max() int {
+func (g *AggGroup) Max() int {
 	return slices.Max(g.Frequencies)
 }
 
-func (g *AGroup) Mean() int {
+func (g *AggGroup) Mean() int {
 	return g.Count() / len(g.Frequencies)
 }
 
-func (g *AGroup) Median() int {
+func (g *AggGroup) Median() int {
 	slices.Sort(g.Frequencies)
 
 	median := len(g.Frequencies) / 2
@@ -150,7 +148,7 @@ func (g *AGroup) Median() int {
 	return (g.Frequencies[median-1] + g.Frequencies[median]) / 2
 }
 
-func (g *AGroup) StdDev() float64 {
+func (g *AggGroup) StdDev() float64 {
 	var floats []float64
 
 	for _, i := range g.Frequencies {

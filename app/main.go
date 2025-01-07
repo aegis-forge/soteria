@@ -4,8 +4,8 @@ import (
 	"github.com/urfave/cli/v2"
 	"log"
 	"os"
-	"tool/app/detectors"
 	"tool/app/internal/commands"
+	"tool/app/internal/detectors"
 	"tool/app/internal/helpers"
 	"tool/app/internal/models"
 )
@@ -49,20 +49,20 @@ func main() {
 					&cli.BoolFlag{
 						Name:        "stats",
 						Aliases:     []string{"s"},
-						Usage:       "Compute and display the _statistics for the passed workflow(s)",
+						Usage:       "Compute and display the statistics for the passed workflow(s)",
 						Destination: &flags.Check.Stats,
 					},
 					&cli.IntFlag{
 						Name:        "max-rows",
 						Aliases:     []string{"r"},
-						Usage:       "Maximum number of rows to print for the _statistics table",
+						Usage:       "Maximum number of rows to print for the statistics table",
 						Value:       10,
-						Destination: &flags.MaxRows,
+						Destination: &flags.Check.MaxRows,
 					},
 					&cli.StringFlag{
 						Name:        "out",
 						Aliases:     []string{"o"},
-						Usage:       "Output directory for the workflow _statistics (one JSON file per workflow will be generated)",
+						Usage:       "Output directory for the workflows' statistics (one JSON file per workflow will be generated, plus a global one)",
 						Destination: &flags.Check.Output,
 					},
 					&cli.BoolFlag{

@@ -1,12 +1,12 @@
 package models
 
 type Flags struct {
-	Check   Check
-	MaxRows int
+	Check Check
 }
 
 type Check struct {
 	Stats   bool
 	Verbose bool
 	Output  string
+	MaxRows int
 }

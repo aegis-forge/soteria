@@ -4,7 +4,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"os"
 	"path/filepath"
-	"tool/app/detectors"
+	"tool/app/internal/detectors"
 	"tool/app/internal/models"
 	"tool/app/internal/statistics"
 )
@@ -14,33 +14,37 @@ func Check(ctx *cli.Context, flags models.Flags, detects detectors.Detectors) er
 
 	lines := map[string]map[string][]int{}
 
-	if !ctx.Args().Present() {
-		if err := parseAndAnalyze(".github/workflows", &stats, flags, lines, detects); err != nil {
-			return err
-		}
-	} else {
+	if ctx.Args().Present() {
 		for ind := range ctx.Args().Len() {
 			if err := parseAndAnalyze(ctx.Args().Get(ind), &stats, flags, lines, detects); err != nil {
 				return err
 			}
 		}
-	}
-
-	if flags.Check.Stats {
-		aggregated := statistics.AStatistics{}
-		aggregated.Init()
-		aggregated.Aggregate(stats)
-
-		err := aggregated.SaveToFile()
+	} else {
+		wd, err := os.Getwd()
 
 		if err != nil {
 			return err
 		}
 
-		if flags.Check.Verbose {
-			statistics.GenerateTables(stats, flags.MaxRows)
-			statistics.GenerateAggregatedTables(aggregated)
+		if err := parseAndAnalyze(wd+".github/workflows", &stats, flags, lines, detects); err != nil {
+			return err
 		}
+	}
+
+	if flags.Check.Stats {
+		aggregated := statistics.AggStatistics{}
+		aggregated.Init()
+		aggregated.Aggregate(stats)
+
+		err := aggregated.SaveToFile(flags.Check.Output)
+
+		if err != nil {
+			return err
+		}
+
+		statistics.GenerateTables(stats, flags.Check.MaxRows)
+		statistics.GenerateAggregatedTables(aggregated)
 	}
 
 	return nil
@@ -78,7 +82,7 @@ func parseAndAnalyze(path string, stats *[]statistics.Statistics, flags models.F
 			return err
 		}
 
-		linesWorkflow, err := detects.EvaluateWorkflow(path, yamlContent)
+		linesWorkflow, err := detects.EvaluateWorkflow(path, yamlContent, flags.Check.Verbose)
 
 		if err != nil {
 			return err

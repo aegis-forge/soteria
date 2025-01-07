@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-var operators = []string{"Match", "Equals", "Exists"}
+var operators = []string{"Equals", "Match", "Exists"}
 var logicalOperators = []string{"And", "Or"}
 
 type Operator interface {

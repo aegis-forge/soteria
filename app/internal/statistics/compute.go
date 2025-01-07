@@ -2,7 +2,7 @@ package statistics
 
 import (
 	"strings"
-	"tool/app/detectors"
+	"tool/app/internal/detectors"
 	"tool/app/internal/helpers"
 )
 

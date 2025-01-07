@@ -52,17 +52,21 @@ func (d *Detectors) AddDetector(detector detector.Detector) error {
 	return nil
 }
 
-func (d *Detectors) EvaluateWorkflow(workflowName string, yamlContent []byte) (map[string][]int, error) {
+func (d *Detectors) EvaluateWorkflow(workflowName string, yamlContent []byte, verbose bool) (map[string][]int, error) {
 	var results = make(map[string][]int)
 	var severitiesCount = make(map[int]int)
 
-	fmt.Print(
-		"\033[97;1m",
-		strings.Repeat("=", len(workflowName))+"\n",
-		workflowName+"\n",
-		strings.Repeat("=", len(workflowName))+"\n\n",
-		"\033[0m",
-	)
+	if verbose {
+		fmt.Print(
+			"\033[97;1m",
+			strings.Repeat("=", len(workflowName))+"\n",
+			workflowName+"\n",
+			strings.Repeat("=", len(workflowName))+"\n\n",
+			"\033[0m",
+		)
+	} else {
+		fmt.Print("\033[97;1m", workflowName, ":\033[0m ")
+	}
 
 	for key, value := range d.detectorsMap {
 		lines, err := value.EvaluateRule(yamlContent)
@@ -77,7 +81,9 @@ func (d *Detectors) EvaluateWorkflow(workflowName string, yamlContent []byte) (m
 			severitiesCount[value.Info.Severity] = len(value.Rule.GetLines())
 		}
 
-		value.PrintResults(yamlContent)
+		if verbose {
+			value.PrintResults(yamlContent)
+		}
 
 		if _, ok := results[key]; !ok {
 			results[key] = lines
@@ -85,7 +91,11 @@ func (d *Detectors) EvaluateWorkflow(workflowName string, yamlContent []byte) (m
 	}
 
 	i := 0
-	fmt.Print("Results: ")
+
+	if verbose {
+		fmt.Print("Results: ")
+	}
+
 	for severity, count := range severitiesCount {
 		fmt.Print(detector.ColorMap[severity]+strings.ToTitle(detector.SeverityMap[severity]),
 			"\u001B[0m "+strconv.Itoa(count),
@@ -95,7 +105,9 @@ func (d *Detectors) EvaluateWorkflow(workflowName string, yamlContent []byte) (m
 		if i != len(severitiesCount) {
 			fmt.Print("; ")
 		} else {
-			fmt.Print("\n")
+			if verbose {
+				fmt.Print("\n")
+			}
 		}
 	}
 
