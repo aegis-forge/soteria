@@ -3,27 +3,68 @@ package detectors
 import (
 	"errors"
 	"fmt"
+	"log"
+	"slices"
 	"strconv"
 	"strings"
 	"tool/app/internal/detector"
+	"tool/app/internal/detectors/simple"
+	"tool/app/internal/helpers"
+	"tool/app/internal/models"
 )
+
+var detectorsMap = map[string]map[string]*detector.Detector{
+	"simple": {
+		"no-hash-version-pin":      &simple.NoHashVersionPin,
+		"coarse-permission":        &simple.CoarsePermission,
+		"caching-in-release":       &simple.CachingInRelease,
+		"bad-local-environment":    &simple.BadLocalEnvironment,
+		"bad-github-context":       &simple.BadGithubContext,
+		"global-secret":            &simple.GlobalSecret,
+		"self-hosted-runner":       &simple.SelfHostedRunner,
+		"unsafe-artifact-download": &simple.UnsafeArtifactDownload,
+	},
+}
 
 type Detectors struct {
 	detectorsMap    map[string]*detector.Detector
 	detectorResults map[string][]int
 }
 
-func (d *Detectors) Init() {
-	d.detectorsMap = map[string]*detector.Detector{
-		"no-hash-version-pin":      &NoHashVersionPin,
-		"coarse-permissions":       &CoarsePermissions,
-		"caching-in-release":       &CachingInRelease,
-		"bad-local-environment":    &BadLocalEnvironment,
-		"bad-github-context":       &BadGithubContext,
-		"global-secrets":           &GlobalSecret,
-		"self-hosted-runner":       &SelfHostedRunner,
-		"unsafe-artifact-download": &UnsafeArtifactDownload,
+func (d *Detectors) Init(config models.Config) {
+	d.detectorsMap = make(map[string]*detector.Detector)
+
+	if !config.Present {
+		for groupName, group := range detectorsMap {
+			for name, det := range group {
+				d.detectorsMap[groupName+"/"+name] = det
+			}
+		}
 	}
+
+	switch config.Detectors.Method {
+	case "include":
+		for _, det := range config.Detectors.Names {
+			group := strings.Split(det, "/")[0]
+			name := strings.Split(det, "/")[1]
+
+			if el, ok := detectorsMap[group][name]; ok {
+				d.detectorsMap[group+"/"+name] = el
+			}
+		}
+	case "exclude":
+		for groupName, group := range detectorsMap {
+			for name, det := range group {
+				if slices.Contains(config.Detectors.Names, groupName+"/"+name) {
+					continue
+				}
+
+				d.detectorsMap[name] = det
+			}
+		}
+	}
+
+	log.Print(d.detectorsMap)
 }
 
 func (d *Detectors) GetDetector(name string) (*detector.Detector, error) {
@@ -97,7 +138,7 @@ func (d *Detectors) EvaluateWorkflow(workflowName string, yamlContent []byte, ve
 	}
 
 	for severity, count := range severitiesCount {
-		fmt.Print(detector.ColorMap[severity]+strings.ToTitle(detector.SeverityMap[severity]),
+		fmt.Print(helpers.ColorMap[severity]+strings.ToTitle(helpers.SeverityMap[severity]),
 			"\u001B[0m "+strconv.Itoa(count),
 		)
 

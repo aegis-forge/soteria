@@ -13,9 +13,6 @@ import (
 func main() {
 	flags := models.Flags{}
 
-	detects := detectors.Detectors{}
-	detects.Init()
-
 	cli.VersionFlag = &cli.BoolFlag{
 		Name:    "version",
 		Aliases: []string{"V"},
@@ -43,6 +40,15 @@ func main() {
 				Name:  "check",
 				Usage: "Perform a static analysis check on the given file(s) or directory",
 				Action: func(ctx *cli.Context) error {
+					detects := detectors.Detectors{}
+					config := models.Config{}
+
+					if err := config.Read(flags.Check.Config); err != nil {
+						return err
+					}
+
+					detects.Init(config)
+
 					return commands.Check(ctx, flags, detects)
 				},
 				Flags: []cli.Flag{
@@ -64,6 +70,12 @@ func main() {
 						Aliases:     []string{"o"},
 						Usage:       "Output directory for the workflows' statistics (one JSON file per workflow will be generated, plus a global one)",
 						Destination: &flags.Check.Output,
+					},
+					&cli.StringFlag{
+						Name:        "config",
+						Aliases:     []string{"c"},
+						Usage:       "Path to the configuration file",
+						Destination: &flags.Check.Config,
 					},
 					&cli.BoolFlag{
 						Name:        "verbose",

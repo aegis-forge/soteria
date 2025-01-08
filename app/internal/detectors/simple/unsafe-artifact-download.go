@@ -1,4 +1,4 @@
-package detectors
+package simple
 
 import "tool/app/internal/detector"
 
@@ -6,6 +6,7 @@ var UnsafeArtifactDownload = detector.Detector{
 	Name: "unsafe-artifact-download",
 	Info: detector.Info{
 		Description: "Downloading artifacts without specifying the path and commit/run_id can lead to privacy escalation in the pipeline.",
+		Message:     "When using 'dawidd6/action-download-artifact', you should specify both the path and commit/run_id",
 		Severity:    5,
 		CWE:         73,
 	},

@@ -1,9 +1,9 @@
-package detectors
+package simple
 
 import "tool/app/internal/detector"
 
-var CoarsePermissions = detector.Detector{
-	Name: "coarse-permissions",
+var CoarsePermission = detector.Detector{
+	Name: "coarse-permission",
 	Info: detector.Info{
 		Description: "Permissions shouldn't be coarse, they should be finegrained on the specific permissions (no default/read-all/write-all permissions).",
 		Message:     "No default (i.e. not defined), read-all, or write-all permissions should be used",

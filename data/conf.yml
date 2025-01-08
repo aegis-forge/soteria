@@ -1,0 +1,13 @@
+#detectors:
+#  method: include
+#  names:
+#    - det1
+#    - det2
+#    - det3
+
+detectors:
+  method: exclude
+  names:
+    - simple/bad-github-context
+    - simple/bad-local-environment
+    - simple/caching-in-release

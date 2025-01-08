@@ -1,4 +1,4 @@
-package detectors
+package simple
 
 import (
 	"tool/app/internal/detector"

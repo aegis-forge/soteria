@@ -1,6 +1,7 @@
 package statistics
 
 import (
+	"strconv"
 	"strings"
 	"tool/app/internal/detectors"
 	"tool/app/internal/helpers"
@@ -153,7 +154,7 @@ func computeDetectors(yamlContent []byte, lines map[string][]int, detects detect
 						return nil, nil, err
 					}
 
-					line = strings.TrimSpace(line)
+					line = strconv.Itoa(occurrence) + " " + strings.TrimSpace(line)
 					occs = append(occs, line)
 					freq++
 

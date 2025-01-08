@@ -8,5 +8,6 @@ type Check struct {
 	Stats   bool
 	Verbose bool
 	Output  string
+	Config  string
 	MaxRows int
 }
