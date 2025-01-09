@@ -3,7 +3,6 @@ package detectors
 import (
 	"errors"
 	"fmt"
-	"log"
 	"slices"
 	"strconv"
 	"strings"
@@ -63,8 +62,6 @@ func (d *Detectors) Init(config models.Config) {
 			}
 		}
 	}
-
-	log.Print(d.detectorsMap)
 }
 
 func (d *Detectors) GetDetector(name string) (*detector.Detector, error) {
@@ -105,8 +102,6 @@ func (d *Detectors) EvaluateWorkflow(workflowName string, yamlContent []byte, ve
 			strings.Repeat("=", len(workflowName))+"\n\n",
 			"\033[0m",
 		)
-	} else {
-		fmt.Print("\033[97;1m", workflowName, ":\033[0m ")
 	}
 
 	for key, value := range d.detectorsMap {
@@ -135,24 +130,23 @@ func (d *Detectors) EvaluateWorkflow(workflowName string, yamlContent []byte, ve
 
 	if verbose {
 		fmt.Print("Results: ")
-	}
 
-	for severity, count := range severitiesCount {
-		fmt.Print(helpers.ColorMap[severity]+strings.ToTitle(helpers.SeverityMap[severity]),
-			"\u001B[0m "+strconv.Itoa(count),
-		)
+		for severity, count := range severitiesCount {
+			fmt.Print(helpers.ColorMap[severity]+strings.ToTitle(helpers.SeverityMap[severity]),
+				"\u001B[0m "+strconv.Itoa(count),
+			)
 
-		i++
-		if i != len(severitiesCount) {
-			fmt.Print("; ")
-		} else {
-			if verbose {
+			i++
+			if i != len(severitiesCount) {
+				fmt.Print("; ")
+			} else {
 				fmt.Print("\n")
 			}
 		}
+
+		fmt.Println()
 	}
 
-	fmt.Println()
 	d.clearDetectors()
 
 	return results, nil

@@ -25,8 +25,13 @@ type Config struct {
 }
 
 func (c *Config) Read(path string) error {
-	file, _ := os.ReadFile(path)
-	err := yaml.Unmarshal(file, &c)
+	file, err := os.ReadFile(path)
+
+	if err != nil {
+		return nil
+	}
+
+	err = yaml.Unmarshal(file, &c)
 
 	if err != nil {
 		return err

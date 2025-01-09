@@ -34,11 +34,15 @@ func (s *Statistics) Init() {
 	s.WorkflowName = filenameArr[len(filenameArr)-1]
 }
 
-func (s *Statistics) Compute(yamlContent []byte, lines map[string][]int, detects detectors.Detectors) error {
+func (s *Statistics) ComputeStructure(yamlContent []byte) error {
 	if err := s.Structure.Compute(yamlContent, s.WorkflowName); err != nil {
 		return err
 	}
 
+	return nil
+}
+
+func (s *Statistics) ComputeDetectors(yamlContent []byte, lines map[string][]int, detects detectors.Detectors) error {
 	if err := s.Detectors.Compute(yamlContent, lines, detects); err != nil {
 		return err
 	}
@@ -46,29 +50,7 @@ func (s *Statistics) Compute(yamlContent []byte, lines map[string][]int, detects
 	return nil
 }
 
-func (s *Statistics) SaveToFile() error {
-	contents, err := json.MarshalIndent(s, "", "  ")
-
-	if err != nil {
-		return err
-	}
-
-	wd, err := os.Getwd()
-
-	if err != nil {
-		return err
-	}
-
-	fullPath := filepath.Join(wd + "/out/" + s.WorkflowName + ".json")
-
-	if err = os.WriteFile(fullPath, contents, 0644); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func GenerateTables(statistics []Statistics, maxRows int) {
+func GenerateTableStructure(statistics []Statistics, maxRows int) {
 	fmt.Println()
 
 	t := table.NewWriter()
@@ -84,6 +66,10 @@ func GenerateTables(statistics []Statistics, maxRows int) {
 		fmt.Println("...only showing first ", maxRows, " rows...")
 	}
 
+	fmt.Println()
+}
+
+func GenerateTableDetectors(statistics []Statistics, maxRows int) {
 	fmt.Println()
 
 	td := table.NewWriter()
@@ -174,6 +160,38 @@ func (s *Structure) Compute(yamlContent []byte, workflowName string) error {
 	return nil
 }
 
+func (s *Structure) SaveToFile(path string, filename string) error {
+	contents, err := json.Marshal(s)
+
+	if err != nil {
+		return err
+	}
+
+	wd, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	fullPath := filepath.Join(wd + "/out/stats/" + filename + ".json")
+
+	if path != "" {
+		fullPath = path + "/" + filename + ".json"
+	} else {
+		err = os.MkdirAll(wd+"/out/stats/", 0755)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	if err = os.WriteFile(fullPath, contents, 0644); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // ===================
 // ==== DETECTORS ====
 // ===================
@@ -188,6 +206,38 @@ func (d *Detectors) Compute(yamlContent []byte, lines map[string][]int, detects 
 		d.Severities = severities
 		d.Frequencies = frequencies
 	} else {
+		return err
+	}
+
+	return nil
+}
+
+func (d *Detectors) SaveToFile(path string, filename string) error {
+	contents, err := json.Marshal(d)
+
+	if err != nil {
+		return err
+	}
+
+	wd, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	fullPath := filepath.Join(wd + "/out/results/" + filename + ".json")
+
+	if path != "" {
+		fullPath = path + "/" + filename + ".json"
+	} else {
+		err = os.MkdirAll(wd+"/out/results/", 0755)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	if err = os.WriteFile(fullPath, contents, 0644); err != nil {
 		return err
 	}
 

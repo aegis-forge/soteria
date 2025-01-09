@@ -44,32 +44,6 @@ func (a *AggStatistics) Aggregate(stats []Statistics) {
 	}
 }
 
-func (a *AggStatistics) SaveToFile(path string) error {
-	contents, err := json.Marshal(a)
-
-	if err != nil {
-		return err
-	}
-
-	wd, err := os.Getwd()
-
-	if err != nil {
-		return err
-	}
-
-	fullPath := filepath.Join(wd + "/out/" + a.WorkflowName + ".json")
-
-	if path != "" {
-		fullPath = path + "/" + a.WorkflowName + ".json"
-	}
-
-	if err = os.WriteFile(fullPath, contents, 0644); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func aggregateStats(toAggregate map[string]Group, aggregated map[string]AggGroup) {
 	for stat, group := range toAggregate {
 		if el, ok := aggregated[stat]; !ok {
@@ -84,7 +58,7 @@ func aggregateStats(toAggregate map[string]Group, aggregated map[string]AggGroup
 	}
 }
 
-func GenerateAggregatedTables(aggregated AggStatistics) {
+func GenerateAggregatedTableStructure(aggregated AggStatistics) {
 	count := aggregated.Structure.Workflow["count"]
 	jobs := aggregated.Structure.Workflow["jobs"]
 	steps := aggregated.Structure.Jobs["steps"]
@@ -105,20 +79,22 @@ func GenerateAggregatedTables(aggregated AggStatistics) {
 	ts.Render()
 
 	fmt.Println()
+}
 
+func GenerateAggregatedTableDetectors(aggregated AggStatistics) {
 	td := table.NewWriter()
 	td.SetOutputMirror(os.Stdout)
 	td.SetTitle("Aggregated Statistics – Detectors")
 	td.AppendHeader(table.Row{"", "COUNT", "MIN", "MAX", "MEAN", "MEDIAN", "STD"})
-	td.AppendRows(createARows(aggregated.Detectors.Frequencies, false))
+	td.AppendRows(createAggRows(aggregated.Detectors.Frequencies, false))
 	td.AppendSeparator()
-	td.AppendRows(createARows(aggregated.Detectors.Severities, true))
+	td.AppendRows(createAggRows(aggregated.Detectors.Severities, true))
 	td.SetIndexColumn(1)
 	td.SetStyle(table.StyleColoredRedWhiteOnBlack)
 	td.Render()
 }
 
-func createARows(stats map[string]AggGroup, severities bool) []table.Row {
+func createAggRows(stats map[string]AggGroup, severities bool) []table.Row {
 	var row []table.Row
 
 	if severities {
@@ -155,6 +131,38 @@ type AggStructure struct {
 	Containers map[string]AggGroup `json:"containers"`
 }
 
+func (a *AggStructure) SaveToFile(path string, filename string) error {
+	contents, err := json.Marshal(a)
+
+	if err != nil {
+		return err
+	}
+
+	wd, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	fullPath := filepath.Join(wd + "/out/stats/" + filename + ".json")
+
+	if path != "" {
+		fullPath = path + "/" + filename + ".json"
+	} else {
+		err = os.MkdirAll(wd+"/out/stats/", 0755)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	if err = os.WriteFile(fullPath, contents, 0644); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // ======================
 // ==== AggDETECTORS ====
 // ======================
@@ -162,4 +170,36 @@ type AggStructure struct {
 type AggDetectors struct {
 	Severities  map[string]AggGroup `json:"severities"`
 	Frequencies map[string]AggGroup `json:"frequencies"`
+}
+
+func (a *AggDetectors) SaveToFile(path string, filename string) error {
+	contents, err := json.Marshal(a)
+
+	if err != nil {
+		return err
+	}
+
+	wd, err := os.Getwd()
+
+	if err != nil {
+		return err
+	}
+
+	fullPath := filepath.Join(wd + "/out/results/" + filename + ".json")
+
+	if path != "" {
+		fullPath = path + "/" + filename + ".json"
+	} else {
+		err = os.MkdirAll(wd+"/out/results/", 0755)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	if err = os.WriteFile(fullPath, contents, 0644); err != nil {
+		return err
+	}
+
+	return nil
 }

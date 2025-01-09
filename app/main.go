@@ -52,25 +52,6 @@ func main() {
 					return commands.Check(ctx, flags, detects)
 				},
 				Flags: []cli.Flag{
-					&cli.BoolFlag{
-						Name:        "stats",
-						Aliases:     []string{"s"},
-						Usage:       "Compute and display the statistics for the passed workflow(s)",
-						Destination: &flags.Check.Stats,
-					},
-					&cli.IntFlag{
-						Name:        "max-rows",
-						Aliases:     []string{"r"},
-						Usage:       "Maximum number of rows to print for the statistics table",
-						Value:       10,
-						Destination: &flags.Check.MaxRows,
-					},
-					&cli.StringFlag{
-						Name:        "out",
-						Aliases:     []string{"o"},
-						Usage:       "Output directory for the workflows' statistics (one JSON file per workflow will be generated, plus a global one)",
-						Destination: &flags.Check.Output,
-					},
 					&cli.StringFlag{
 						Name:        "config",
 						Aliases:     []string{"c"},
@@ -83,8 +64,43 @@ func main() {
 						Usage:       "Verbose mode",
 						Destination: &flags.Check.Verbose,
 					},
+					&cli.StringFlag{
+						Name:        "out",
+						Aliases:     []string{"o"},
+						Usage:       "Output directory for the workflows' statistics (one JSON file per workflow will be generated, plus a global one)",
+						Destination: &flags.Check.Output,
+					},
+					&cli.IntFlag{
+						Name:        "max-rows",
+						Aliases:     []string{"r"},
+						Usage:       "Maximum number of rows to print for the statistics table",
+						Value:       10,
+						Destination: &flags.Check.MaxRows,
+					},
 				},
 				UseShortOptionHandling: true,
+			},
+			{
+				Name:  "stats",
+				Usage: "Compute file structure statistics on the given file(s) or directory (only for GitHub workflow files)",
+				Action: func(ctx *cli.Context) error {
+					return commands.Stats(ctx, flags)
+				},
+				Flags: []cli.Flag{
+					&cli.IntFlag{
+						Name:        "max-rows",
+						Aliases:     []string{"r"},
+						Usage:       "Maximum number of rows to print for the statistics table",
+						Value:       10,
+						Destination: &flags.Stats.MaxRows,
+					},
+					&cli.StringFlag{
+						Name:        "out",
+						Aliases:     []string{"o"},
+						Usage:       "Output directory for the workflows' statistics (one JSON file per workflow will be generated, plus a global one)",
+						Destination: &flags.Stats.Output,
+					},
+				},
 			},
 		},
 	}
