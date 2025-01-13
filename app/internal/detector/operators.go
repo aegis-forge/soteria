@@ -127,7 +127,7 @@ func (o *Match) ClearResults() {
 type Exists operator
 
 func (o *Exists) Evaluate(yamlContent []byte) error {
-	exists, err := CheckExistence(o.LHS.(string), o.RHS.(string), yamlContent)
+	exists, lines, err := CheckExistence(o.LHS.(string), o.RHS.(string), yamlContent)
 
 	if err != nil {
 		return err
@@ -140,7 +140,7 @@ func (o *Exists) Evaluate(yamlContent []byte) error {
 	}
 
 	if o.value {
-		o.lines = []int{1}
+		o.lines = lines
 	}
 
 	return nil

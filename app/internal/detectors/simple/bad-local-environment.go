@@ -14,6 +14,7 @@ var BadLocalEnvironment = detector.Detector{
 		Severity:    4,
 		CWE:         94,
 	},
+	CountAll: true,
 	Rule: &detector.Or{
 		LHS: &detector.Match{
 			LHS: "$.jobs..steps[*].with.script",

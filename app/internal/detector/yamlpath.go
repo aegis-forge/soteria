@@ -36,12 +36,16 @@ func Resolve(yamlPath string, yamlContent []byte) ([]string, []int, error) {
 	return nodeValues, lines, nil
 }
 
-func CheckExistence(yamlPath string, toCheck string, yamlContent []byte) (bool, error) {
-	res, _, err := Resolve(yamlPath, yamlContent)
+func CheckExistence(yamlPath string, toCheck string, yamlContent []byte) (bool, []int, error) {
+	res, lines, err := Resolve(yamlPath, yamlContent)
 
 	if err != nil {
-		return false, err
+		return false, nil, err
 	}
 
-	return slices.Contains(res, toCheck), nil
+	if !slices.Contains(res, toCheck) {
+		return false, nil, nil
+	}
+
+	return true, []int{lines[slices.Index(res, toCheck)]}, nil
 }

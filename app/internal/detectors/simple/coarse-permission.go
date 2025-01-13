@@ -10,6 +10,7 @@ var CoarsePermission = detector.Detector{
 		Severity:    3,
 		CWE:         -1,
 	},
+	CountAll: true,
 	Rule: &detector.Or{
 		LHS: &detector.Or{
 			LHS: &detector.Match{

@@ -10,6 +10,7 @@ var SelfHostedRunner = detector.Detector{
 		Severity:    3,
 		CWE:         -1,
 	},
+	CountAll: true,
 	Rule: &detector.Or{
 		LHS: &detector.Match{
 			LHS: "$.jobs..runs-on",

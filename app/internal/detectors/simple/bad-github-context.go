@@ -14,6 +14,7 @@ var BadGithubContext = detector.Detector{
 		Severity:    4,
 		CWE:         82,
 	},
+	CountAll: true,
 	Rule: &detector.Or{
 		LHS: &detector.Match{
 			LHS: "$.jobs..steps[*].with.script",

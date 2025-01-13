@@ -144,6 +144,7 @@ func computeDetectors(yamlContent []byte, lines map[string][]int, detects detect
 			if len(occurrences) > 0 {
 				var occs []string
 
+				severity := detectorObject.GetSeverity()
 				groupFreq := Group{}
 				freq := 0
 
@@ -157,18 +158,31 @@ func computeDetectors(yamlContent []byte, lines map[string][]int, detects detect
 					line = strconv.Itoa(occurrence) + " " + strings.TrimSpace(line)
 					occs = append(occs, line)
 					freq++
+				}
 
-					severity := detectorObject.GetSeverity()
-
+				if detectorObject.CountAll {
+					for _, line := range occs {
+						if _, ok := severities[severity]; !ok {
+							severities[severity] = []string{line}
+						} else {
+							severities[severity] = append(severities[severity], line)
+						}
+					}
+				} else {
 					if _, ok := severities[severity]; !ok {
-						severities[severity] = []string{line}
+						severities[severity] = []string{occs[0]}
 					} else {
-						severities[severity] = append(severities[severity], line)
+						severities[severity] = append(severities[severity], occs[0])
 					}
 				}
 
-				groupFreq.AddManually(occs, freq)
-				frequencies[detectorObject.Name] = groupFreq
+				if detectorObject.CountAll {
+					groupFreq.AddManually(occs, freq)
+					frequencies[detectorObject.Name] = groupFreq
+				} else {
+					groupFreq.AddManually(occs, 1)
+					frequencies[detectorObject.Name] = groupFreq
+				}
 			}
 		} else {
 			return nil, nil, err

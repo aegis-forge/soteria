@@ -10,9 +10,10 @@ import (
 )
 
 type Detector struct {
-	Name string
-	Info Info
-	Rule Operator
+	Name     string
+	CountAll bool
+	Info     Info
+	Rule     Operator
 }
 
 type Info struct {

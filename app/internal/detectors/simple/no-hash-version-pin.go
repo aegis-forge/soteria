@@ -10,6 +10,7 @@ var NoHashVersionPin = detector.Detector{
 		Severity:    2,
 		CWE:         -1,
 	},
+	CountAll: true,
 	Rule: &detector.Match{
 		LHS: "$..uses",
 		RHS: `^[^@]+@\S{1,39}$`,
