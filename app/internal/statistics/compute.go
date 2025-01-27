@@ -133,6 +133,36 @@ func computeJobs(yamlContent []byte) (map[string]Group, error) {
 	return jobs, nil
 }
 
+func computeSteps(yamlContent []byte) (map[string]Group, error) {
+	steps := map[string]Group{}
+	toComputeYamlPath := map[string][]string{
+		"uses": {"$.jobs..uses[?!(@=~/workflows/)]"},
+	}
+
+	for name, yamlPaths := range toComputeYamlPath {
+		group := Group{}
+
+		if err := group.AddOccurrences(yamlPaths, yamlContent); err != nil {
+			return nil, err
+		}
+
+		steps[name] = group
+	}
+
+	steps["steps"] = Group{
+		Occurrences: []string{},
+		Frequencies: CountOccurrences("$.jobs..steps[*]", yamlContent),
+	}
+
+	err := computePermissions(yamlContent, steps)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return steps, nil
+}
+
 func computeDetectors(yamlContent []byte, lines map[string][]int, path string, detects detectors.Detectors) (map[string]Group, map[string]Group, error) {
 	severities := map[string][]string{}
 
