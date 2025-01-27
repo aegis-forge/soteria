@@ -17,10 +17,11 @@ type Detector struct {
 }
 
 type Info struct {
-	Description string
-	Message     string
-	Severity    int
-	CWE         int
+	Description    string
+	Message        string
+	Severity       int
+	Exploitability int
+	CICDSEC        int
 }
 
 func (d Detector) GetSeverity() string {

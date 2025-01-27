@@ -21,7 +21,7 @@ func main() {
 
 	app := &cli.App{
 		Name:                   helpers.Constants.Name,
-		Usage:                  "Statically analyze GitHub workflow files with custom detectors",
+		Usage:                  "Statically analyze YAML files with custom detectors",
 		Version:                helpers.Constants.Version,
 		ArgsUsage:              "[file(s) | directory]",
 		EnableBashCompletion:   true,
@@ -58,24 +58,36 @@ func main() {
 						Usage:       "Path to the configuration file",
 						Destination: &flags.Check.Config,
 					},
+					&cli.StringFlag{
+						Name:        "repo",
+						Aliases:     []string{"r"},
+						Usage:       "Name of the repository (will be used to name the global results file)",
+						Destination: &flags.Check.Repo,
+					},
 					&cli.BoolFlag{
 						Name:        "verbose",
 						Aliases:     []string{"v"},
 						Usage:       "Verbose mode",
 						Destination: &flags.Check.Verbose,
 					},
+					&cli.IntFlag{
+						Name:        "max-rows",
+						Aliases:     []string{"m"},
+						Usage:       "Maximum number of rows to print for the statistics table",
+						Value:       10,
+						Destination: &flags.Check.MaxRows,
+					},
+					&cli.BoolFlag{
+						Name:        "global",
+						Aliases:     []string{"g"},
+						Usage:       "Output only one global JSON file per repository with the aggregated results",
+						Destination: &flags.Check.Global,
+					},
 					&cli.StringFlag{
 						Name:        "out",
 						Aliases:     []string{"o"},
 						Usage:       "Output directory for the workflows' statistics (one JSON file per workflow will be generated, plus a global one)",
 						Destination: &flags.Check.Output,
-					},
-					&cli.IntFlag{
-						Name:        "max-rows",
-						Aliases:     []string{"r"},
-						Usage:       "Maximum number of rows to print for the statistics table",
-						Value:       10,
-						Destination: &flags.Check.MaxRows,
 					},
 				},
 				UseShortOptionHandling: true,
@@ -87,12 +99,24 @@ func main() {
 					return commands.Stats(ctx, flags)
 				},
 				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:        "repo",
+						Aliases:     []string{"r"},
+						Usage:       "Name of the repository (will be used to name the global results file)",
+						Destination: &flags.Stats.Repo,
+					},
 					&cli.IntFlag{
 						Name:        "max-rows",
-						Aliases:     []string{"r"},
+						Aliases:     []string{"m"},
 						Usage:       "Maximum number of rows to print for the statistics table",
 						Value:       10,
 						Destination: &flags.Stats.MaxRows,
+					},
+					&cli.BoolFlag{
+						Name:        "global",
+						Aliases:     []string{"g"},
+						Usage:       "Output only one global JSON file per repository with the aggregated statistics",
+						Destination: &flags.Stats.Global,
 					},
 					&cli.StringFlag{
 						Name:        "out",

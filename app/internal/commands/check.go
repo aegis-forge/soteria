@@ -39,10 +39,10 @@ func Check(ctx *cli.Context, flags models.Flags, detects detectors.Detectors) er
 	}
 
 	aggregated := statistics.AggStatistics{}
-	aggregated.Init()
+	aggregated.Init(flags.Check.Repo)
 	aggregated.Aggregate(stats)
 
-	err = aggregated.Detectors.SaveToFile(flags.Stats.Output, aggregated.WorkflowName)
+	err = aggregated.Detectors.SaveToFile(flags.Check.Output, aggregated.WorkflowName)
 
 	if err != nil {
 		return err
@@ -111,16 +111,18 @@ func parseAndAnalyze(path string, stats *[]statistics.Statistics, flags models.F
 		stat := statistics.Statistics{WorkflowName: path}
 		stat.Init()
 
-		err = stat.ComputeDetectors(yamlContent, lines[path], detects)
+		err = stat.ComputeDetectors(yamlContent, lines[path], path, detects)
 
 		if err != nil {
 			return err
 		}
 
-		err = stat.Detectors.SaveToFile(flags.Check.Output, stat.WorkflowName)
+		if !flags.Check.Global {
+			err = stat.Detectors.SaveToFile(flags.Check.Output, stat.WorkflowName)
 
-		if err != nil {
-			return err
+			if err != nil {
+				return err
+			}
 		}
 
 		*stats = append(*stats, stat)

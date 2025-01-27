@@ -42,8 +42,8 @@ func (s *Statistics) ComputeStructure(yamlContent []byte) error {
 	return nil
 }
 
-func (s *Statistics) ComputeDetectors(yamlContent []byte, lines map[string][]int, detects detectors.Detectors) error {
-	if err := s.Detectors.Compute(yamlContent, lines, detects); err != nil {
+func (s *Statistics) ComputeDetectors(yamlContent []byte, lines map[string][]int, path string, detects detectors.Detectors) error {
+	if err := s.Detectors.Compute(yamlContent, lines, path, detects); err != nil {
 		return err
 	}
 
@@ -201,8 +201,8 @@ type Detectors struct {
 	Frequencies map[string]Group `json:"frequencies"`
 }
 
-func (d *Detectors) Compute(yamlContent []byte, lines map[string][]int, detects detectors.Detectors) error {
-	if severities, frequencies, err := computeDetectors(yamlContent, lines, detects); err == nil {
+func (d *Detectors) Compute(yamlContent []byte, lines map[string][]int, path string, detects detectors.Detectors) error {
+	if severities, frequencies, err := computeDetectors(yamlContent, lines, path, detects); err == nil {
 		d.Severities = severities
 		d.Frequencies = frequencies
 	} else {

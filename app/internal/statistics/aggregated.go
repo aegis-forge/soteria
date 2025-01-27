@@ -20,8 +20,12 @@ type AggStatistics struct {
 	Detectors    AggDetectors `json:"detectors"`
 }
 
-func (a *AggStatistics) Init() {
+func (a *AggStatistics) Init(repository string) {
 	a.WorkflowName = "global"
+
+	if repository != "" {
+		a.WorkflowName = repository
+	}
 
 	a.Structure.Workflow = map[string]AggGroup{}
 	a.Structure.Jobs = map[string]AggGroup{}
@@ -33,7 +37,7 @@ func (a *AggStatistics) Init() {
 }
 
 func (a *AggStatistics) Aggregate(stats []Statistics) {
-	aggregated := Statistics{WorkflowName: "global"}
+	aggregated := Statistics{WorkflowName: a.WorkflowName}
 	aggregated.Init()
 
 	for _, stat := range stats {
@@ -46,13 +50,21 @@ func (a *AggStatistics) Aggregate(stats []Statistics) {
 
 func aggregateStats(toAggregate map[string]Group, aggregated map[string]AggGroup) {
 	for stat, group := range toAggregate {
+		var newOccurrences []string
+
+		if group.Workflow != "" {
+			newOccurrences = append(newOccurrences, group.Workflow)
+		}
+		
+		newOccurrences = append(newOccurrences, group.Occurrences...)
+
 		if el, ok := aggregated[stat]; !ok {
 			aggregated[stat] = AggGroup{
-				Occurrences: [][]string{group.Occurrences},
+				Occurrences: [][]string{newOccurrences},
 				Frequencies: []int{group.Frequencies},
 			}
 		} else {
-			el.Append(group.Occurrences, group.Frequencies)
+			el.Append(newOccurrences, group.Frequencies)
 			aggregated[stat] = el
 		}
 	}

@@ -133,11 +133,14 @@ func computeJobs(yamlContent []byte) (map[string]Group, error) {
 	return jobs, nil
 }
 
-func computeDetectors(yamlContent []byte, lines map[string][]int, detects detectors.Detectors) (map[string]Group, map[string]Group, error) {
+func computeDetectors(yamlContent []byte, lines map[string][]int, path string, detects detectors.Detectors) (map[string]Group, map[string]Group, error) {
 	severities := map[string][]string{}
 
 	severitiesConv := map[string]Group{}
 	frequencies := map[string]Group{}
+
+	splitPath := strings.Split(path, "/")
+	cleanedPath := strings.Join(splitPath[len(splitPath)-2:], "/")
 
 	for detector, occurrences := range lines {
 		if detectorObject, err := detects.GetDetector(detector); err == nil {
@@ -145,7 +148,7 @@ func computeDetectors(yamlContent []byte, lines map[string][]int, detects detect
 				var occs []string
 
 				severity := detectorObject.GetSeverity()
-				groupFreq := Group{}
+				groupFreq := Group{Workflow: cleanedPath}
 				freq := 0
 
 				for _, occurrence := range occurrences {

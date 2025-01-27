@@ -30,7 +30,7 @@ func Stats(ctx *cli.Context, flags models.Flags) error {
 	}
 
 	aggregated := statistics.AggStatistics{}
-	aggregated.Init()
+	aggregated.Init(flags.Stats.Repo)
 	aggregated.Aggregate(stats)
 
 	err := aggregated.Structure.SaveToFile(flags.Stats.Output, aggregated.WorkflowName)
@@ -85,7 +85,13 @@ func parseAndCompute(path string, stats *[]statistics.Statistics, flags models.F
 			return err
 		}
 
-		err = stat.Structure.SaveToFile(flags.Stats.Output, stat.WorkflowName)
+		if !flags.Stats.Global {
+			err = stat.Structure.SaveToFile(flags.Stats.Output, stat.WorkflowName)
+
+			if err != nil {
+				return err
+			}
+		}
 
 		*stats = append(*stats, stat)
 	}

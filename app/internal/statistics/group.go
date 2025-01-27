@@ -12,6 +12,7 @@ import (
 // ===============
 
 type Group struct {
+	Workflow    string   `json:"workflow,omitempty"`
 	Occurrences []string `json:"occurrences"`
 	Frequencies int      `json:"frequencies"`
 }
@@ -125,18 +126,34 @@ func (g *AggGroup) Count() int {
 }
 
 func (g *AggGroup) Min() int {
+	if len(g.Frequencies) == 0 {
+		return 0
+	}
+
 	return slices.Min(g.Frequencies)
 }
 
 func (g *AggGroup) Max() int {
+	if len(g.Frequencies) == 0 {
+		return 0
+	}
+
 	return slices.Max(g.Frequencies)
 }
 
 func (g *AggGroup) Mean() int {
+	if len(g.Frequencies) == 0 {
+		return 0
+	}
+
 	return g.Count() / len(g.Frequencies)
 }
 
 func (g *AggGroup) Median() int {
+	if len(g.Frequencies) == 0 {
+		return 0
+	}
+
 	slices.Sort(g.Frequencies)
 
 	median := len(g.Frequencies) / 2
@@ -149,6 +166,10 @@ func (g *AggGroup) Median() int {
 }
 
 func (g *AggGroup) StdDev() float64 {
+	if len(g.Frequencies) == 0 {
+		return 0
+	}
+
 	var floats []float64
 
 	for _, i := range g.Frequencies {

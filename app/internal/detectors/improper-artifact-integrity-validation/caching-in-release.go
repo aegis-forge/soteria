@@ -1,16 +1,17 @@
-package simple
+package improper_artifact_integrity_validation
 
 import "tool/app/internal/detector"
 
-var regexCache = `R|release`
+var regexCache = `Release|release`
 
 var CachingInRelease = detector.Detector{
 	Name: "caching-in-release",
 	Info: detector.Info{
-		Description: "Caching in a release workflow can lead to supply chain attacks such as cache poisoning. This is especially dangerous when using self-hosted runners.",
-		Message:     "Caching should never be done in release workflows",
-		Severity:    5,
-		CWE:         349,
+		Description:    "Caching in a release workflow can lead to supply chain attacks such as cache poisoning. This is especially dangerous when using self-hosted runners.",
+		Message:        "Caching should never be done in release workflows",
+		Severity:       5,
+		Exploitability: -1,
+		CICDSEC:        9,
 	},
 	Rule: &detector.And{
 		LHS: &detector.Match{

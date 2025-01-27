@@ -7,26 +7,35 @@ import (
 	"strconv"
 	"strings"
 	"tool/app/internal/detector"
-	"tool/app/internal/detectors/complex"
-	"tool/app/internal/detectors/simple"
+	dependency_chain_abuse "tool/app/internal/detectors/dependency-chain-abuse"
+	improper_artifact_integrity_validation "tool/app/internal/detectors/improper-artifact-integrity-validation"
+	insecure_system_configuration "tool/app/internal/detectors/insecure-system-configuration"
+	insufficient_pbac "tool/app/internal/detectors/insufficient-pbac"
+	poinsoned_pipeline_execution "tool/app/internal/detectors/poinsoned-pipeline-execution"
 	"tool/app/internal/helpers"
 	"tool/app/internal/models"
 )
 
 var detectorsMap = map[string]map[string]*detector.Detector{
-	"simple": {
-		"no-hash-version-pin":      &simple.NoHashVersionPin,
-		"coarse-permission":        &simple.CoarsePermission,
-		"caching-in-release":       &simple.CachingInRelease,
-		"bad-local-environment":    &simple.BadLocalEnvironment,
-		"bad-github-context":       &simple.BadGithubContext,
-		"global-secret":            &simple.GlobalSecret,
-		"self-hosted-runner":       &simple.SelfHostedRunner,
-		"unsafe-artifact-download": &simple.UnsafeArtifactDownload,
+	"dependency-chain-abuse": {
+		"no-hash-version-pin": &dependency_chain_abuse.NoHashVersionPin,
 	},
-	"complex": {
-		"conditional-command-injection":   &complex.ConditionalCommandInjection,
-		"unconditional-command-injection": &complex.UnconditionalCommandInjection,
+	"poisoned-pipeline-execution": {
+		"bad-local-environment": &poinsoned_pipeline_execution.BadLocalEnvironment,
+		"bad-github-context":    &poinsoned_pipeline_execution.BadGithubContext,
+		"conditional-ppe":       &poinsoned_pipeline_execution.ConditionalPPE,
+		"unconditional-ppe":     &poinsoned_pipeline_execution.UnconditionalPPE,
+	},
+	"insufficient-pbac": {
+		"coarse-permission": &insufficient_pbac.CoarsePermission,
+		"global-secret":     &insufficient_pbac.GlobalSecret,
+	},
+	"insecure-system-configuration": {
+		"self-hosted-runner": &insecure_system_configuration.SelfHostedRunner,
+	},
+	"improper-artifact-integrity-validation": {
+		"caching-in-release":       &improper_artifact_integrity_validation.CachingInRelease,
+		"unsafe-artifact-download": &improper_artifact_integrity_validation.UnsafeArtifactDownload,
 	},
 }
 
