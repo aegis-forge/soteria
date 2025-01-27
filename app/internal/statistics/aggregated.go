@@ -30,7 +30,6 @@ func (a *AggStatistics) Init(repository string) {
 	a.Structure.Workflow = map[string]AggGroup{}
 	a.Structure.Jobs = map[string]AggGroup{}
 	a.Structure.Steps = map[string]AggGroup{}
-	a.Structure.Containers = map[string]AggGroup{}
 
 	a.Detectors.Frequencies = map[string]AggGroup{}
 	a.Detectors.Severities = map[string]AggGroup{}
@@ -43,6 +42,7 @@ func (a *AggStatistics) Aggregate(stats []Statistics) {
 	for _, stat := range stats {
 		aggregateStats(stat.Structure.Workflow, a.Structure.Workflow)
 		aggregateStats(stat.Structure.Jobs, a.Structure.Jobs)
+		aggregateStats(stat.Structure.Steps, a.Structure.Steps)
 		aggregateStats(stat.Detectors.Frequencies, a.Detectors.Frequencies)
 		aggregateStats(stat.Detectors.Severities, a.Detectors.Severities)
 	}
@@ -55,7 +55,7 @@ func aggregateStats(toAggregate map[string]Group, aggregated map[string]AggGroup
 		if group.Workflow != "" {
 			newOccurrences = append(newOccurrences, group.Workflow)
 		}
-		
+
 		newOccurrences = append(newOccurrences, group.Occurrences...)
 
 		if el, ok := aggregated[stat]; !ok {
@@ -137,10 +137,9 @@ func createAggRows(stats map[string]AggGroup, severities bool) []table.Row {
 // ======================
 
 type AggStructure struct {
-	Workflow   map[string]AggGroup `json:"workflows"`
-	Jobs       map[string]AggGroup `json:"jobs"`
-	Steps      map[string]AggGroup `json:"steps"`
-	Containers map[string]AggGroup `json:"containers"`
+	Workflow map[string]AggGroup `json:"workflows"`
+	Jobs     map[string]AggGroup `json:"jobs"`
+	Steps    map[string]AggGroup `json:"steps"`
 }
 
 func (a *AggStructure) SaveToFile(path string, filename string) error {

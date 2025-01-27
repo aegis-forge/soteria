@@ -136,7 +136,11 @@ func computeJobs(yamlContent []byte) (map[string]Group, error) {
 func computeSteps(yamlContent []byte) (map[string]Group, error) {
 	steps := map[string]Group{}
 	toComputeYamlPath := map[string][]string{
-		"uses": {"$.jobs..uses[?!(@=~/workflows/)]"},
+		"uses":                  {"$.jobs..uses[?(!@=~/workflows/)]"},
+		"run":                   {"$.jobs..run"},
+		"environment":           {"$.jobs..steps[*].env[*]", "$.jobs..steps.env"},
+		"environment.inherited": {"$.jobs..steps[*].env[?(@=='inherited')]"},
+		"environment.variables": {`$.jobs..steps[*].env..*[?(@=~/\$\{\{\s*.+\s*}}/)]`},
 	}
 
 	for name, yamlPaths := range toComputeYamlPath {
@@ -147,17 +151,6 @@ func computeSteps(yamlContent []byte) (map[string]Group, error) {
 		}
 
 		steps[name] = group
-	}
-
-	steps["steps"] = Group{
-		Occurrences: []string{},
-		Frequencies: CountOccurrences("$.jobs..steps[*]", yamlContent),
-	}
-
-	err := computePermissions(yamlContent, steps)
-
-	if err != nil {
-		return nil, err
 	}
 
 	return steps, nil

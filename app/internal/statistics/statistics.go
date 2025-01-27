@@ -24,7 +24,6 @@ func (s *Statistics) Init() {
 	s.Structure.Workflow = map[string]Group{}
 	s.Structure.Jobs = map[string]Group{}
 	s.Structure.Steps = map[string]Group{}
-	s.Structure.Containers = map[string]Group{}
 
 	s.Detectors.Frequencies = map[string]Group{}
 	s.Detectors.Severities = map[string]Group{}
@@ -138,10 +137,9 @@ func createRowsDetectors(stats []Statistics, maxRows int) []table.Row {
 // ===================
 
 type Structure struct {
-	Workflow   map[string]Group `json:"workflows"`
-	Jobs       map[string]Group `json:"jobs"`
-	Steps      map[string]Group `json:"steps"`
-	Containers map[string]Group `json:"containers"`
+	Workflow map[string]Group `json:"workflows"`
+	Jobs     map[string]Group `json:"jobs"`
+	Steps    map[string]Group `json:"steps"`
 }
 
 func (s *Structure) Compute(yamlContent []byte, workflowName string) error {
@@ -153,6 +151,12 @@ func (s *Structure) Compute(yamlContent []byte, workflowName string) error {
 
 	if jobs, err := computeJobs(yamlContent); err == nil {
 		s.Jobs = jobs
+	} else {
+		return err
+	}
+
+	if steps, err := computeSteps(yamlContent); err == nil {
+		s.Steps = steps
 	} else {
 		return err
 	}
