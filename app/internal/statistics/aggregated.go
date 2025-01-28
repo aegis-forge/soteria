@@ -20,11 +20,13 @@ type AggStatistics struct {
 	Detectors    AggDetectors `json:"detectors"`
 }
 
-func (a *AggStatistics) Init(repository string) {
-	a.WorkflowName = "global"
+func (a *AggStatistics) Init(repository string, directory string) {
+	a.WorkflowName = directory + "/"
 
 	if repository != "" {
-		a.WorkflowName = repository
+		a.WorkflowName += directory + "/" + repository
+	} else {
+		a.WorkflowName += "global"
 	}
 
 	a.Structure.Workflow = map[string]AggGroup{}

@@ -37,7 +37,7 @@ func (g *Group) GetOccurrences(yamlPath string, yamlContent []byte) ([]string, i
 	return occurrences, frequencies, nil
 }
 
-func (g *Group) AddOccurrences(yamlPaths []string, yamlContent []byte) error {
+func (g *Group) AddOccurrences(yamlPaths []string, yamlContent []byte, workflowName string) error {
 	for _, yamlPath := range yamlPaths {
 		occurrences, frequencies, err := g.GetOccurrences(yamlPath, yamlContent)
 
@@ -49,6 +49,7 @@ func (g *Group) AddOccurrences(yamlPaths []string, yamlContent []byte) error {
 			continue
 		}
 
+		g.Occurrences = append(g.Occurrences, workflowName)
 		g.Occurrences = append(g.Occurrences, occurrences...)
 		g.Frequencies += frequencies
 	}

@@ -59,7 +59,7 @@ func computeWorkflows(yamlContent []byte, workflowName string) (map[string]Group
 	for name, yamlPaths := range toComputeYamlPath {
 		group = Group{}
 
-		if err := group.AddOccurrences(yamlPaths, yamlContent); err != nil {
+		if err := group.AddOccurrences(yamlPaths, yamlContent, workflowName); err != nil {
 			return nil, err
 		}
 
@@ -75,7 +75,7 @@ func computeWorkflows(yamlContent []byte, workflowName string) (map[string]Group
 	return workflow, nil
 }
 
-func computeJobs(yamlContent []byte) (map[string]Group, error) {
+func computeJobs(yamlContent []byte, workflowName string) (map[string]Group, error) {
 	jobs := map[string]Group{}
 	toComputeYamlPath := map[string][]string{
 		"permissions":              {"$.jobs..permissions[*]", "$.jobs..permissions"},
@@ -100,7 +100,7 @@ func computeJobs(yamlContent []byte) (map[string]Group, error) {
 	for name, yamlPaths := range toComputeYamlPath {
 		group := Group{}
 
-		if err := group.AddOccurrences(yamlPaths, yamlContent); err != nil {
+		if err := group.AddOccurrences(yamlPaths, yamlContent, workflowName); err != nil {
 			return nil, err
 		}
 
@@ -133,7 +133,7 @@ func computeJobs(yamlContent []byte) (map[string]Group, error) {
 	return jobs, nil
 }
 
-func computeSteps(yamlContent []byte) (map[string]Group, error) {
+func computeSteps(yamlContent []byte, workflowName string) (map[string]Group, error) {
 	steps := map[string]Group{}
 	toComputeYamlPath := map[string][]string{
 		"uses":                  {"$.jobs..uses[?(!@=~/workflows/)]"},
@@ -146,7 +146,7 @@ func computeSteps(yamlContent []byte) (map[string]Group, error) {
 	for name, yamlPaths := range toComputeYamlPath {
 		group := Group{}
 
-		if err := group.AddOccurrences(yamlPaths, yamlContent); err != nil {
+		if err := group.AddOccurrences(yamlPaths, yamlContent, workflowName); err != nil {
 			return nil, err
 		}
 

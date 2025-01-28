@@ -4,6 +4,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"os"
 	"path/filepath"
+	"strings"
 	"tool/app/internal/models"
 	"tool/app/internal/statistics"
 )
@@ -30,10 +31,12 @@ func Stats(ctx *cli.Context, flags models.Flags) error {
 	}
 
 	aggregated := statistics.AggStatistics{}
-	aggregated.Init(flags.Stats.Repo)
+	aggregated.Init(flags.Stats.Repo, flags.Stats.Output)
 	aggregated.Aggregate(stats)
 
-	err := aggregated.Structure.SaveToFile(flags.Stats.Output, aggregated.WorkflowName)
+	noExtName := strings.TrimSuffix(aggregated.WorkflowName, filepath.Ext(aggregated.WorkflowName))
+	splitName := strings.Split(noExtName, "/")
+	err := aggregated.Structure.SaveToFile(flags.Stats.Output, splitName[len(splitName)-1])
 
 	if err != nil {
 		return err
@@ -86,7 +89,9 @@ func parseAndCompute(path string, stats *[]statistics.Statistics, flags models.F
 		}
 
 		if !flags.Stats.Global {
-			err = stat.Structure.SaveToFile(flags.Stats.Output, stat.WorkflowName)
+			noExtName := strings.TrimSuffix(stat.WorkflowName, filepath.Ext(stat.WorkflowName))
+			splitName := strings.Split(noExtName, "/")
+			err = stat.Structure.SaveToFile(flags.Stats.Output, splitName[len(splitName)-1])
 
 			if err != nil {
 				return err

@@ -28,8 +28,7 @@ func (s *Statistics) Init() {
 	s.Detectors.Frequencies = map[string]Group{}
 	s.Detectors.Severities = map[string]Group{}
 
-	path := strings.TrimSuffix(s.WorkflowName, filepath.Ext(s.WorkflowName))
-	filenameArr := strings.Split(path, "/")
+	filenameArr := strings.Split(s.WorkflowName, "data/")
 	s.WorkflowName = filenameArr[len(filenameArr)-1]
 }
 
@@ -149,13 +148,13 @@ func (s *Structure) Compute(yamlContent []byte, workflowName string) error {
 		return err
 	}
 
-	if jobs, err := computeJobs(yamlContent); err == nil {
+	if jobs, err := computeJobs(yamlContent, workflowName); err == nil {
 		s.Jobs = jobs
 	} else {
 		return err
 	}
 
-	if steps, err := computeSteps(yamlContent); err == nil {
+	if steps, err := computeSteps(yamlContent, workflowName); err == nil {
 		s.Steps = steps
 	} else {
 		return err

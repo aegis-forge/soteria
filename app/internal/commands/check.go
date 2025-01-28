@@ -4,6 +4,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"os"
 	"path/filepath"
+	"strings"
 	"tool/app/internal/detectors"
 	"tool/app/internal/models"
 	"tool/app/internal/statistics"
@@ -39,10 +40,12 @@ func Check(ctx *cli.Context, flags models.Flags, detects detectors.Detectors) er
 	}
 
 	aggregated := statistics.AggStatistics{}
-	aggregated.Init(flags.Check.Repo)
+	aggregated.Init(flags.Check.Repo, flags.Check.Output)
 	aggregated.Aggregate(stats)
 
-	err = aggregated.Detectors.SaveToFile(flags.Check.Output, aggregated.WorkflowName)
+	noExtName := strings.TrimSuffix(aggregated.WorkflowName, filepath.Ext(aggregated.WorkflowName))
+	splitName := strings.Split(noExtName, "/")
+	err = aggregated.Detectors.SaveToFile(flags.Check.Output, splitName[len(splitName)-1])
 
 	if err != nil {
 		return err
@@ -118,7 +121,9 @@ func parseAndAnalyze(path string, stats *[]statistics.Statistics, flags models.F
 		}
 
 		if !flags.Check.Global {
-			err = stat.Detectors.SaveToFile(flags.Check.Output, stat.WorkflowName)
+			noExtName := strings.TrimSuffix(stat.WorkflowName, filepath.Ext(stat.WorkflowName))
+			splitName := strings.Split(noExtName, "/")
+			err = stat.Detectors.SaveToFile(flags.Check.Output, splitName[len(splitName)-1])
 
 			if err != nil {
 				return err
