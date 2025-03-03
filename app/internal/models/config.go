@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"gopkg.in/yaml.v3"
+	"log"
 	"os"
 	"slices"
 	"strings"
@@ -21,7 +22,7 @@ type section interface {
 type Config struct {
 	Present bool
 
-	Detectors Detectors `yaml:"detectors"`
+	Detectors DetectorsConf `yaml:"detectors"`
 }
 
 func (c *Config) Read(path string) error {
@@ -57,6 +58,8 @@ func (c *Config) validate() error {
 		return err
 	}
 
+	log.Print(c.Detectors.Names)
+
 	return nil
 }
 
@@ -64,13 +67,13 @@ func (c *Config) validate() error {
 // ==== DETECTORS ====
 // ===================
 
-type Detectors struct {
+type DetectorsConf struct {
 	section
 	Method string   `yaml:"method"`
 	Names  []string `yaml:"names"`
 }
 
-func (d *Detectors) validate() error {
+func (d *DetectorsConf) validate() error {
 	if d.Method != "" || !slices.Contains(detectorMethods, d.Method) {
 		return errors.New("invalid method, must be one of: " + strings.Join(detectorMethods, ", "))
 	}

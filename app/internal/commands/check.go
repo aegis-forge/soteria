@@ -43,8 +43,7 @@ func Check(ctx *cli.Context, flags models.Flags, detects detectors.Detectors) er
 	aggregated.Init(flags.Check.Repo, flags.Check.Output)
 	aggregated.Aggregate(stats)
 
-	noExtName := strings.TrimSuffix(aggregated.WorkflowName, filepath.Ext(aggregated.WorkflowName))
-	splitName := strings.Split(noExtName, "/")
+	splitName := strings.Split(aggregated.WorkflowName, "/")
 	err = aggregated.Detectors.SaveToFile(flags.Check.Output, splitName[len(splitName)-1])
 
 	if err != nil {
@@ -72,11 +71,11 @@ func readAndValidateConfig(path string) (models.Config, error) {
 func parseAndAnalyze(path string, stats *[]statistics.Statistics, flags models.Flags, lines map[string]map[string][]int, detects detectors.Detectors, config models.Config) error {
 	fileInfo, err := os.Stat(path)
 
-	if err != nil {
+	if err != nil && !flags.Check.String {
 		return err
 	}
 
-	if fileInfo.IsDir() {
+	if fileInfo != nil && fileInfo.IsDir() {
 		err = filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -95,10 +94,16 @@ func parseAndAnalyze(path string, stats *[]statistics.Statistics, flags models.F
 			return err
 		}
 	} else {
-		yamlContent, err := os.ReadFile(path)
+		var yamlContent []byte
 
-		if err != nil {
-			return err
+		if flags.Check.String {
+			yamlContent = []byte(path)
+		} else {
+			yamlContent, err = os.ReadFile(path)
+
+			if err != nil {
+				return err
+			}
 		}
 
 		linesWorkflow, err := detects.EvaluateWorkflow(path, yamlContent, flags.Check.Verbose)

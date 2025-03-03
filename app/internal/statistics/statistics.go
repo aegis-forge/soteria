@@ -28,8 +28,8 @@ func (s *Statistics) Init() {
 	s.Detectors.Frequencies = map[string]Group{}
 	s.Detectors.Severities = map[string]Group{}
 
-	filenameArr := strings.Split(s.WorkflowName, "data/")
-	s.WorkflowName = filenameArr[len(filenameArr)-1]
+	filenameArr := strings.Split(s.WorkflowName, "/")
+	s.WorkflowName = filenameArr[len(filenameArr)-2] + "/" + filenameArr[len(filenameArr)-1]
 }
 
 func (s *Statistics) ComputeStructure(yamlContent []byte) error {

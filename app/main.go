@@ -65,6 +65,12 @@ func main() {
 						Destination: &flags.Check.Repo,
 					},
 					&cli.BoolFlag{
+						Name:        "string",
+						Aliases:     []string{"s"},
+						Usage:       "YAML being passed as string",
+						Destination: &flags.Check.String,
+					},
+					&cli.BoolFlag{
 						Name:        "verbose",
 						Aliases:     []string{"v"},
 						Usage:       "Verbose mode",
@@ -123,6 +129,21 @@ func main() {
 						Aliases:     []string{"o"},
 						Usage:       "Output directory for the workflows' statistics (one JSON file per workflow will be generated, plus a global one)",
 						Destination: &flags.Stats.Output,
+					},
+				},
+			},
+			{
+				Name:  "detectors",
+				Usage: "Get the list of all the available detectors. If the 'config' flag is set, it returns the detectors enabled by that configuration file",
+				Action: func(ctx *cli.Context) error {
+					return nil
+				},
+				Flags: []cli.Flag{
+					&cli.StringFlag{
+						Name:        "config",
+						Aliases:     []string{"c"},
+						Usage:       "Path to the configuration file",
+						Destination: &flags.Check.Config,
 					},
 				},
 			},

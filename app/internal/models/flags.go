@@ -8,6 +8,7 @@ type Flags struct {
 type Check struct {
 	Config  string
 	Repo    string
+	String  bool
 	Verbose bool
 	MaxRows int
 	Global  bool
@@ -19,4 +20,8 @@ type Stats struct {
 	MaxRows int
 	Global  bool
 	Output  string
+}
+
+type Detectors struct {
+	Config string
 }

@@ -46,7 +46,7 @@ func computeWorkflows(yamlContent []byte, workflowName string) (map[string]Group
 		"permissions.fine.read":    {"$.permissions..[?(@=='read')]"},
 		"permissions.fine.write":   {"$.permissions..*[?(@=='write')]"},
 		"permissions.fine.none":    {"$.permissions..*[?(@=='none')]"},
-		"environment":              {"$.env[*]", "$.jobs..env"},
+		"environment":              {"$.env[*]", "$..env"},
 		"environment.inherited":    {"$.env[?(@=='inherited')]"},
 		"environment.variables":    {`$.env..*[?(@=~/\$\{\{\s*.+\s*}}/)]`},
 		"defaults":                 {"$.defaults..[*]~"},
@@ -111,7 +111,7 @@ func computeJobs(yamlContent []byte, workflowName string) (map[string]Group, err
 		group := Group{}
 
 		if found {
-			group.AddManually([]string{}, times)
+			group.AddManually([]string{workflowName, strconv.Itoa(times)}, times)
 		}
 
 		jobs["containers"] = group
@@ -119,9 +119,11 @@ func computeJobs(yamlContent []byte, workflowName string) (map[string]Group, err
 		return nil, err
 	}
 
+	steps := CountOccurrences("$.jobs..steps[*]", yamlContent)
+
 	jobs["steps"] = Group{
-		Occurrences: []string{},
-		Frequencies: CountOccurrences("$.jobs..steps[*]", yamlContent),
+		Occurrences: []string{workflowName, strconv.Itoa(steps)},
+		Frequencies: steps,
 	}
 
 	err := computePermissions(yamlContent, jobs)

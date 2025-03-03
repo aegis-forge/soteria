@@ -24,7 +24,7 @@ func (a *AggStatistics) Init(repository string, directory string) {
 	a.WorkflowName = directory + "/"
 
 	if repository != "" {
-		a.WorkflowName += directory + "/" + repository
+		a.WorkflowName += repository
 	} else {
 		a.WorkflowName += "global"
 	}

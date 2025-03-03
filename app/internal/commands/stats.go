@@ -34,8 +34,7 @@ func Stats(ctx *cli.Context, flags models.Flags) error {
 	aggregated.Init(flags.Stats.Repo, flags.Stats.Output)
 	aggregated.Aggregate(stats)
 
-	noExtName := strings.TrimSuffix(aggregated.WorkflowName, filepath.Ext(aggregated.WorkflowName))
-	splitName := strings.Split(noExtName, "/")
+	splitName := strings.Split(aggregated.WorkflowName, "/")
 	err := aggregated.Structure.SaveToFile(flags.Stats.Output, splitName[len(splitName)-1])
 
 	if err != nil {

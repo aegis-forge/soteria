@@ -133,14 +133,12 @@ func (o *Exists) Evaluate(yamlContent []byte) error {
 		return err
 	}
 
-	if o.NOT {
-		o.value = !exists
-	} else {
-		o.value = exists
-	}
+	o.value = o.NOT != exists
 
-	if o.value {
+	if exists {
 		o.lines = lines
+	} else {
+		o.lines = []int{1}
 	}
 
 	return nil
