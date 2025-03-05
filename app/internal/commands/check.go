@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/urfave/cli/v2"
 	"math/rand"
 	"os"
@@ -47,14 +49,21 @@ func Check(ctx *cli.Context, flags models.Flags, detects detectors.Detectors) er
 	aggregated.Aggregate(stats)
 
 	splitName := strings.Split(aggregated.WorkflowName, "/")
-	err = aggregated.Detectors.SaveToFile(flags.Check.Output, splitName[len(splitName)-1])
 
-	if err != nil {
-		return err
+	if flags.Check.String {
+		if contents, err := json.Marshal(aggregated); err != nil {
+			return err
+		} else {
+			fmt.Print(string(contents[:]))
+		}
+	} else {
+		if err = aggregated.Detectors.SaveToFile(flags.Check.Output, splitName[len(splitName)-1]); err != nil {
+			return err
+		}
+
+		statistics.GenerateTableDetectors(stats, flags.Check.MaxRows)
+		statistics.GenerateAggregatedTableDetectors(aggregated)
 	}
-
-	statistics.GenerateTableDetectors(stats, flags.Check.MaxRows)
-	statistics.GenerateAggregatedTableDetectors(aggregated)
 
 	return nil
 }

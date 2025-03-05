@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"encoding/json"
+	"fmt"
 	"github.com/urfave/cli/v2"
 	"math/rand"
 	"os"
@@ -38,14 +40,21 @@ func Stats(ctx *cli.Context, flags models.Flags) error {
 	aggregated.Aggregate(stats)
 
 	splitName := strings.Split(aggregated.WorkflowName, "/")
-	err := aggregated.Structure.SaveToFile(flags.Stats.Output, splitName[len(splitName)-1])
 
-	if err != nil {
-		return err
+	if flags.Stats.String {
+		if contents, err := json.Marshal(aggregated); err != nil {
+			return err
+		} else {
+			fmt.Print(string(contents[:]))
+		}
+	} else {
+		if err := aggregated.Structure.SaveToFile(flags.Stats.Output, splitName[len(splitName)-1]); err != nil {
+			return err
+		}
+
+		statistics.GenerateTableStructure(stats, flags.Stats.MaxRows)
+		statistics.GenerateAggregatedTableStructure(aggregated)
 	}
-
-	statistics.GenerateTableStructure(stats, flags.Stats.MaxRows)
-	statistics.GenerateAggregatedTableStructure(aggregated)
 
 	return nil
 }
