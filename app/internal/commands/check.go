@@ -2,9 +2,12 @@ package commands
 
 import (
 	"github.com/urfave/cli/v2"
+	"math/rand"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 	"tool/app/internal/detectors"
 	"tool/app/internal/models"
 	"tool/app/internal/statistics"
@@ -116,10 +119,19 @@ func parseAndAnalyze(path string, stats *[]statistics.Statistics, flags models.F
 			lines[path] = linesWorkflow
 		}
 
-		stat := statistics.Statistics{WorkflowName: path}
+		var filename string
+
+		if flags.Check.String {
+			r := rand.New(rand.NewSource(time.Now().UnixNano()))
+			filename = "input/" + strconv.Itoa(r.Intn(1000))
+		} else {
+			filename = path
+		}
+
+		stat := statistics.Statistics{WorkflowName: filename}
 		stat.Init()
 
-		err = stat.ComputeDetectors(yamlContent, lines[path], path, detects)
+		err = stat.ComputeDetectors(yamlContent, lines[path], filename, detects)
 
 		if err != nil {
 			return err

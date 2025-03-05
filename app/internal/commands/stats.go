@@ -2,9 +2,12 @@ package commands
 
 import (
 	"github.com/urfave/cli/v2"
+	"math/rand"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"time"
 	"tool/app/internal/models"
 	"tool/app/internal/statistics"
 )
@@ -50,11 +53,11 @@ func Stats(ctx *cli.Context, flags models.Flags) error {
 func parseAndCompute(path string, stats *[]statistics.Statistics, flags models.Flags) error {
 	fileInfo, err := os.Stat(path)
 
-	if err != nil {
+	if err != nil && !flags.Stats.String {
 		return err
 	}
 
-	if fileInfo.IsDir() {
+	if fileInfo != nil && fileInfo.IsDir() {
 		err = filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
@@ -73,12 +76,28 @@ func parseAndCompute(path string, stats *[]statistics.Statistics, flags models.F
 			return err
 		}
 	} else {
-		stat := statistics.Statistics{WorkflowName: path}
-		stat.Init()
-		yamlContent, err := os.ReadFile(path)
+		var filename string
 
-		if err != nil {
-			return err
+		if flags.Stats.String {
+			r := rand.New(rand.NewSource(time.Now().UnixNano()))
+			filename = "input/" + strconv.Itoa(r.Intn(1000))
+		} else {
+			filename = path
+		}
+
+		stat := statistics.Statistics{WorkflowName: filename}
+		stat.Init()
+
+		var yamlContent []byte
+
+		if flags.Stats.String {
+			yamlContent = []byte(path)
+		} else {
+			yamlContent, err = os.ReadFile(path)
+
+			if err != nil {
+				return err
+			}
 		}
 
 		err = stat.ComputeStructure(yamlContent)

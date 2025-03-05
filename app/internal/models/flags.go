@@ -17,6 +17,7 @@ type Check struct {
 
 type Stats struct {
 	Repo    string
+	String  bool
 	MaxRows int
 	Global  bool
 	Output  string

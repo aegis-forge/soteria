@@ -111,6 +111,12 @@ func main() {
 						Usage:       "Name of the repository (will be used to name the global results file)",
 						Destination: &flags.Stats.Repo,
 					},
+					&cli.BoolFlag{
+						Name:        "string",
+						Aliases:     []string{"s"},
+						Usage:       "YAML being passed as string",
+						Destination: &flags.Stats.String,
+					},
 					&cli.IntFlag{
 						Name:        "max-rows",
 						Aliases:     []string{"m"},
