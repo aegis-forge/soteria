@@ -11,7 +11,7 @@ import (
 	improper_artifact_integrity_validation "tool/app/internal/detectors/improper-artifact-integrity-validation"
 	insecure_system_configuration "tool/app/internal/detectors/insecure-system-configuration"
 	insufficient_pbac "tool/app/internal/detectors/insufficient-pbac"
-	poinsoned_pipeline_execution "tool/app/internal/detectors/poinsoned-pipeline-execution"
+	poisoned_pipeline_execution "tool/app/internal/detectors/poinsoned-pipeline-execution"
 	"tool/app/internal/helpers"
 	"tool/app/internal/models"
 )
@@ -21,10 +21,9 @@ var detectorsMap = map[string]map[string]*detector.Detector{
 		"no-hash-version-pin": &dependency_chain_abuse.NoHashVersionPin,
 	},
 	"poisoned-pipeline-execution": {
-		"bad-local-environment": &poinsoned_pipeline_execution.BadLocalEnvironment,
-		"bad-github-context":    &poinsoned_pipeline_execution.BadGithubContext,
-		"conditional-ppe":       &poinsoned_pipeline_execution.ConditionalPPE,
-		"unconditional-ppe":     &poinsoned_pipeline_execution.UnconditionalPPE,
+		"conditional-injection":   &poisoned_pipeline_execution.ConditionalInjection,
+		"unconditional-injection": &poisoned_pipeline_execution.UnconditionalInjection,
+		"pwn-request":             &poisoned_pipeline_execution.PwnRequest,
 	},
 	"insufficient-pbac": {
 		"coarse-permission": &insufficient_pbac.CoarsePermission,

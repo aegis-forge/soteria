@@ -139,7 +139,8 @@ func computeSteps(yamlContent []byte, workflowName string) (map[string]Group, er
 	steps := map[string]Group{}
 	toComputeYamlPath := map[string][]string{
 		"uses":                  {"$.jobs..uses[?(!@=~/workflows/)]"},
-		"run":                   {"$.jobs..run"},
+		"run":                   {"$.jobs..steps[*].run"},
+		"scripts":               {"$.jobs..steps[*].with.script"},
 		"environment":           {"$.jobs..steps[*].env[*]", "$.jobs..steps.env"},
 		"environment.inherited": {"$.jobs..steps[*].env[?(@=='inherited')]"},
 		"environment.variables": {`$.jobs..steps[*].env..*[?(@=~/\$\{\{\s*.+\s*}}/)]`},

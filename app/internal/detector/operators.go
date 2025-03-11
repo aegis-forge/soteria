@@ -2,6 +2,7 @@ package detector
 
 import (
 	"errors"
+	"log"
 	"reflect"
 	"regexp"
 	"slices"
@@ -83,6 +84,9 @@ type Match operator
 
 func (o *Match) Evaluate(yamlContent []byte) error {
 	toCompare, lines, err := Resolve(o.LHS.(string), yamlContent)
+
+	log.Print(o.LHS.(string))
+	log.Print(toCompare)
 
 	if err != nil {
 		return err

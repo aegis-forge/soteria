@@ -4,8 +4,8 @@ import (
 	"tool/app/internal/detector"
 )
 
-var UnconditionalPPE = detector.Detector{
-	Name: "unconditional-ppe",
+var UnconditionalInjection = detector.Detector{
+	Name: "unconditional-injection",
 	Info: detector.Info{
 		Description:    "Using 'issues' as trigger, no conditional statement, and Github context or local env variables in run sections can lead to code injection.",
 		Message:        "Do not use GitHub context or local env variables in scripts together with an 'issues' trigger",
@@ -20,21 +20,22 @@ var UnconditionalPPE = detector.Detector{
 			RHS: "if",
 		},
 		RHS: &detector.And{
-			LHS: &detector.Match{
-				LHS: "$.on..[*]~",
-				RHS: "issues",
+			LHS: &detector.Or{
+				LHS: &detector.Or{
+					LHS: &detector.Match{
+						LHS: "$.on",
+						RHS: "issues",
+					},
+					RHS: &detector.Match{
+						LHS: "$.on[*]",
+						RHS: "issues",
+					},
+				},
+				RHS: &detector.Match{
+					LHS: "$.on..[*]~",
+					RHS: "issues",
+				},
 			},
-			//RHS: &detector.Or{
-			//LHS: &detector.Or{
-			//	LHS: &detector.Match{
-			//		LHS: "$.jobs..steps[*].with.script",
-			//		RHS: regexBad,
-			//	},
-			//	RHS: &detector.Match{
-			//		LHS: "$.jobs..steps[*].run",
-			//		RHS: regexBad,
-			//	},
-			//},
 			RHS: &detector.Or{
 				LHS: &detector.Match{
 					LHS: "$.jobs..steps[*].with.script",
@@ -45,7 +46,6 @@ var UnconditionalPPE = detector.Detector{
 					RHS: regexContext,
 				},
 			},
-			//},
 		},
 	},
 }
