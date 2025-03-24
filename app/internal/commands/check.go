@@ -39,7 +39,7 @@ func Check(ctx *cli.Context, flags models.Flags, detects detectors.Detectors) er
 			return err
 		}
 
-		if err = parseAndAnalyze(wd+".github/workflows", &stats, flags, lines, detects, config); err != nil {
+		if err = parseAndAnalyze(wd+"/.github/workflows", &stats, flags, lines, detects, config); err != nil {
 			return err
 		}
 	}

@@ -1,4 +1,4 @@
-package poinsoned_pipeline_execution
+package poisoned_pipeline_execution
 
 import (
 	"tool/app/internal/detector"
@@ -9,11 +9,10 @@ var regexContext = `(github\.event\.issue\.title|github\.event\.issue\.body|gith
 var ConditionalInjection = detector.Detector{
 	Name: "conditional-injection",
 	Info: detector.Info{
-		Description:    "Using 'issues' as trigger, no conditional statement, and Github context or local env variables in run sections can lead to code injection.",
-		Message:        "Do not use GitHub context or local env variables in scripts together with an 'issues' trigger",
-		Severity:       3,
-		Exploitability: -1,
-		CICDSEC:        4,
+		Description: "Using 'issues' as trigger, no conditional statement, and Github context or local env variables in run sections can lead to code injection.",
+		Message:     "Do not use GitHub context or local env variables in scripts together with an 'issues' trigger",
+		Severity:    3,
+		CICDSEC:     4,
 	},
 	Rule: &detector.And{
 		LHS: &detector.Exists{

@@ -30,7 +30,7 @@ func Stats(ctx *cli.Context, flags models.Flags) error {
 			return err
 		}
 
-		if err = parseAndCompute(wd+".github/workflows", &stats, flags); err != nil {
+		if err = parseAndCompute(wd+"/.github/workflows", &stats, flags); err != nil {
 			return err
 		}
 	}

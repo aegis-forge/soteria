@@ -17,11 +17,10 @@ type Detector struct {
 }
 
 type Info struct {
-	Description    string `json:"description"`
-	Message        string `json:"message"`
-	Severity       int    `json:"severity"`
-	Exploitability int    `json:"-"`
-	CICDSEC        int    `json:"cicdsec"`
+	Description string `json:"description"`
+	Message     string `json:"message"`
+	Severity    int    `json:"severity"`
+	CICDSEC     int    `json:"cicdsec"`
 }
 
 func (d Detector) GetSeverity() string {

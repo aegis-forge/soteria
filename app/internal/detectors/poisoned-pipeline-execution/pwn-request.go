@@ -1,4 +1,4 @@
-package poinsoned_pipeline_execution
+package poisoned_pipeline_execution
 
 import "tool/app/internal/detector"
 
@@ -8,11 +8,10 @@ var regexRefs = `/refs/pull/\$\{\{\s*github.event.pull_request.number\s*\}\}/mer
 var PwnRequest = detector.Detector{
 	Name: "pwn-request",
 	Info: detector.Info{
-		Description:    "",
-		Message:        "",
-		Severity:       5,
-		Exploitability: -1,
-		CICDSEC:        4,
+		Description: "Using 'pull request target' as a trigger, together with a checkout of the code from the pull request branch, can make the workflow susceptible to remote code execution",
+		Message:     "Do not checkout code coming from pull_request_target",
+		Severity:    5,
+		CICDSEC:     4,
 	},
 	Rule: &detector.And{
 		LHS: &detector.And{

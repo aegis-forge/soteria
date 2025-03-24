@@ -7,11 +7,10 @@ var regexSecret = `\$\{\{\s*secrets\.|\$\{\{\s*github.token`
 var GlobalSecret = detector.Detector{
 	Name: "global-secret",
 	Info: detector.Info{
-		Description:    "When declaring a secret, always declare it locally (step/container scope) and not globally (workflow/job scope).",
-		Message:        "Secrets should only be defined in steps or containers",
-		Severity:       3,
-		Exploitability: -1,
-		CICDSEC:        5,
+		Description: "When declaring a secret, always declare it locally (step/container scope) and not globally (workflow/job scope).",
+		Message:     "Secrets should only be defined in steps or containers",
+		Severity:    3,
+		CICDSEC:     5,
 	},
 	CountAll: true,
 	Rule: &detector.Or{

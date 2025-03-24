@@ -12,7 +12,7 @@ import (
 	improper_artifact_integrity_validation "tool/app/internal/detectors/improper-artifact-integrity-validation"
 	insecure_system_configuration "tool/app/internal/detectors/insecure-system-configuration"
 	insufficient_pbac "tool/app/internal/detectors/insufficient-pbac"
-	poisoned_pipeline_execution "tool/app/internal/detectors/poinsoned-pipeline-execution"
+	poisoned_pipeline_execution "tool/app/internal/detectors/poisoned-pipeline-execution"
 	"tool/app/internal/helpers"
 	"tool/app/internal/models"
 )
