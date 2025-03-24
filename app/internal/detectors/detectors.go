@@ -3,6 +3,7 @@ package detectors
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"slices"
 	"strconv"
 	"strings"
@@ -60,14 +61,14 @@ func (d *Detectors) Init(config models.Config) {
 			group := strings.Split(det, "/")[0]
 			name := strings.Split(det, "/")[1]
 
-			if el, ok := detectorsMap[group][name]; ok {
-				d.detectorsMap[group+"/"+name] = el
-			}
-
-			if els, ok := detectorsMap[group]; ok {
-				for key, val := range els {
-					d.detectorsMap[group+"/"+key] = val
+			if name == "*" {
+				if els, ok := detectorsMap[group]; ok {
+					for key, val := range els {
+						d.detectorsMap[group+"/"+key] = val
+					}
 				}
+			} else if el, ok := detectorsMap[group][name]; ok {
+				d.detectorsMap[group+"/"+name] = el
 			}
 		}
 	case "exclude":
@@ -93,6 +94,10 @@ func (d *Detectors) GetDetector(name string) (*detector.Detector, error) {
 	} else {
 		return res, nil
 	}
+}
+
+func (d *Detectors) GetDetectors() []*detector.Detector {
+	return slices.Collect(maps.Values(d.detectorsMap))
 }
 
 func (d *Detectors) EvaluateWorkflow(workflowName string, yamlContent []byte, verbose bool) (map[string][]int, error) {

@@ -1,10 +1,26 @@
 package commands
 
 import (
-	"github.com/urfave/cli/v2"
-	"tool/app/internal/models"
+	"encoding/json"
+	"fmt"
+	"tool/app/internal/detector"
+	"tool/app/internal/detectors"
 )
 
-func Detectors(ctx *cli.Context, flags models.Flags) error {
+func Detectors(detects detectors.Detectors) error {
+	var detectorsSlice []*detector.Detector
+
+	for _, det := range detects.GetDetectors() {
+		detectorsSlice = append(detectorsSlice, det)
+	}
+
+	jsonDetect, err := json.Marshal(detectorsSlice)
+
+	if err != nil {
+		return err
+	}
+
+	fmt.Print(string(jsonDetect))
+
 	return nil
 }

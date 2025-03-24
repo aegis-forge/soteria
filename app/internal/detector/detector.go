@@ -10,18 +10,18 @@ import (
 )
 
 type Detector struct {
-	Name     string
-	CountAll bool
-	Info     Info
-	Rule     Operator
+	Name     string   `json:"name"`
+	CountAll bool     `json:"-"`
+	Info     Info     `json:"info"`
+	Rule     Operator `json:"-"`
 }
 
 type Info struct {
-	Description    string
-	Message        string
-	Severity       int
-	Exploitability int
-	CICDSEC        int
+	Description    string `json:"description"`
+	Message        string `json:"message"`
+	Severity       int    `json:"severity"`
+	Exploitability int    `json:"-"`
+	CICDSEC        int    `json:"cicdsec"`
 }
 
 func (d Detector) GetSeverity() string {

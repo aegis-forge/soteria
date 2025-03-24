@@ -142,7 +142,16 @@ func main() {
 				Name:  "detectors",
 				Usage: "Get the list of all the available detectors. If the 'config' flag is set, it returns the detectors enabled by that configuration file",
 				Action: func(ctx *cli.Context) error {
-					return nil
+					detects := detectors.Detectors{}
+					config := models.Config{}
+
+					if err := config.Read(flags.Check.Config); err != nil {
+						return err
+					}
+
+					detects.Init(config)
+
+					return commands.Detectors(detects)
 				},
 				Flags: []cli.Flag{
 					&cli.StringFlag{

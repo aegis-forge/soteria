@@ -5,4 +5,4 @@ var Constants = struct {
 	Version        string
 	TableMaxRows   int
 	TimeoutMinutes int
-}{"tool", "v0.0.1", 100, 360}
+}{"soteria", "v0.0.1", 100, 360}
