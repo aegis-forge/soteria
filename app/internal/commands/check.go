@@ -146,7 +146,7 @@ func parseAndAnalyze(path string, stats *[]statistics.Statistics, flags models.F
 			return err
 		}
 
-		if !flags.Check.Global {
+		if !flags.Check.Global && !flags.Check.String {
 			noExtName := strings.TrimSuffix(stat.WorkflowName, filepath.Ext(stat.WorkflowName))
 			splitName := strings.Split(noExtName, "/")
 			err = stat.Detectors.SaveToFile(flags.Check.Output, splitName[len(splitName)-1])
