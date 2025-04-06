@@ -44,6 +44,14 @@ type Detectors struct {
 	detectorResults map[string][]int
 }
 
+type DetectorOutput struct {
+	Detector    string `json:"detector"`
+	Description string `json:"description"`
+	Message     string `json:"message"`
+	Severity    int    `json:"severity"`
+	CICDSEC     int    `json:"cicdsec"`
+}
+
 func (d *Detectors) Init(config models.Config) {
 	d.detectorsMap = make(map[string]*detector.Detector)
 
@@ -97,8 +105,26 @@ func (d *Detectors) GetDetector(name string) (*detector.Detector, error) {
 }
 
 func (d *Detectors) GetDetectors() []*detector.Detector {
-	return slices.Collect(maps.Values(d.detectorsMap))
+	return slices.Collect(maps.Values(d.detectorsMap))	
 }
+
+func (d *Detectors) GetDetectorsWithCategory() []DetectorOutput {
+    outputs := make([]DetectorOutput, 0, len(d.detectorsMap))
+    
+    for detectorName, detector := range d.detectorsMap {
+        output := DetectorOutput{
+            Detector:    	detectorName,
+            Description: 	detector.Info.Description,
+            Message:     	detector.Info.Message,
+            Severity:    	detector.Info.Severity,
+            CICDSEC:     	detector.Info.CICDSEC,
+        }
+        outputs = append(outputs, output)
+    }
+    
+    return outputs
+}
+
 
 func (d *Detectors) EvaluateWorkflow(workflowName string, yamlContent []byte, verbose bool) (map[string][]int, error) {
 	var results = make(map[string][]int)
