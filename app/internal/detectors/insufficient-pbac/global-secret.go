@@ -26,9 +26,16 @@ var GlobalSecret = detector.Detector{
 		},
 		RHS: &detector.Or{
 			LHS: &detector.Or{
-				LHS: &detector.Match{
-					LHS: "$.jobs..env[*]",
-					RHS: regexSecret,
+				LHS: &detector.And{
+					LHS: &detector.Match{
+						LHS: "$.jobs..steps[*].env[*]",
+						RHS: regexSecret,
+						NOT: true,
+					},
+					RHS: &detector.Match{
+						LHS: "$.jobs..env[*]",
+						RHS: regexSecret,
+					},
 				},
 				RHS: &detector.Equals{
 					LHS: "$.jobs..env",

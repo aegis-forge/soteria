@@ -96,8 +96,10 @@ func (o *Match) Evaluate(yamlContent []byte) error {
 		}
 	}
 
+	o.value = o.NOT != (len(o.lines) > 0)
+
 	if len(o.lines) > 0 {
-		o.value = true
+		o.lines = lines
 	}
 
 	return nil

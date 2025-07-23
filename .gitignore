@@ -2,7 +2,6 @@
 .DS_Store
 dist
 out
-data
 
 # Binaries for programs and plugins
 *.exe
