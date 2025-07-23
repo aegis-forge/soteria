@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
 </p>
 
-# Soteria
+# soteria
 
 _Soteria_ is a misconfiguration detector for GitHub workflow files. It has been designed to be modular, so that custom detectors can be added by the user. This tool caters to both developers and researchers, offering outputs for developers and JSON files containing detailed results for researchers.
 
