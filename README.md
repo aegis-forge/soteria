@@ -1,6 +1,6 @@
 <p align="center">
   <img width="100" src="assets/branding/logo.svg" alt="Soteria logo"> <br><br>
-  <img src="https://img.shields.io/badge/go-v1.23.3-blue" alt="Go version">
+  <img src="https://img.shields.io/badge/go-v1.22-blue" alt="Go version">
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
 </p>
 
@@ -122,3 +122,15 @@ detectors:
 ```
 
 In the case above, all but the `no-hash-version-pin` misconfiguration and the misconfigurations present in the `poisoned-pipeline-execution` group will be used during the analysis of the workflow.
+
+## Publications
+
+Soteria was presented and used in the following scientific research papers:
+
+- Riggio, E. and Pautasso C. (2025). *Pipelines Under Pressure: An Empirical Study of Security Misconfigurations of GitHub Workflows*. Proceedings of 26th International Conference on Product-Focused Software Process Improvement (PROFES), in press, Springer
+
+- Serbout S., Muñoz Hurtado D. C., Atwi H., Riggio E., and Pautasso C. (2025). *Evolution Scatterplot: Exploring Software ChangeDynamics in Large-Scale Historical Datasets*. Proceedings of 13th IEEE Working Conference on Software Visualization (VISSOFT), in press, IEEE
+
+## Contacts
+
+- Edoardo Riggio - [https://edoriggio.com](https://edoriggio.com)
