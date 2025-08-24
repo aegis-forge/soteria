@@ -1,7 +1,7 @@
 <p align="center">
   <img width="100" src="assets/branding/logo.svg" alt="Soteria logo"> <br><br>
   <img src="https://img.shields.io/badge/go-v1.22-blue" alt="Go version">
-  <a href="https://figshare.com/articles/conference_contribution/Replication_package_of_the_paper_Pipelines_Under_Pressure_An_Empirical_Study_of_Security_Misconfigurations_of_GitHub_Workflows_/29412686"><img src="https://img.shields.io/badge/archiviation doi-10.6084/m9.figshare.29412686-black" alt="Archived"></a>
+  <a href="https://figshare.com/articles/conference_contribution/Replication_package_of_the_paper_Pipelines_Under_Pressure_An_Empirical_Study_of_Security_Misconfigurations_of_GitHub_Workflows_/29412686"><img src="https://img.shields.io/badge/archiviation doi-10.6084/m9.figshare.29412686-orange" alt="Archived"></a>
   <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
 </p>
 
