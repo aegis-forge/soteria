@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+title: Soteria
+message: "If you use Soteria for your research, please cite it as below."
+type: software
+authors:
+  - given-names: Edoardo
+    family-names: Riggio
+    orcid: 'https://orcid.org/0009-0000-5649-3412'
+  - given-names: Cesare
+    family-names: Pautasso
+    orcid: 'https://orcid.org/0000-0002-2748-9665'
+preferred-citation:
+  type: conference-paper
+  authors:
+    - given-names: Edoardo
+      family-names: Riggio
+      orcid: 'https://orcid.org/0009-0000-5649-3412'
+    - given-names: Cesare
+      family-names: Pautasso
+      orcid: 'https://orcid.org/0000-0002-2748-9665'
+  title: "Pipelines Under Pressure: An Empirical Study of Security Misconfigurations of GitHub Workflows"
+  collection-title: "Proceedings of 26th International Conference on Product-Focused Software Process Improvement (PROFES 2025)"
+  # doi: "TBD"
+  # month: "TBD"
+  year: 2025
+  start: 1 # Placeholder
+  end: 16 # Placeholder
+  volume: "in press"
