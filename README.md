@@ -130,7 +130,7 @@ Soteria was presented and used in the following scientific research papers:
 
 - Riggio, E. and Pautasso C. (2025). *Pipelines Under Pressure: An Empirical Study of Security Misconfigurations of GitHub Workflows*. Proceedings of 26th International Conference on Product-Focused Software Process Improvement (PROFES), in press, Springer
 
-- Serbout S., Muñoz Hurtado D. C., Atwi H., Riggio E., and Pautasso C. (2025). *Evolution Scatterplot: Exploring Software ChangeDynamics in Large-Scale Historical Datasets*. Proceedings of 13th IEEE Working Conference on Software Visualization (VISSOFT), in press, IEEE
+- Serbout S., Muñoz Hurtado D. C., Atwi H., Riggio E., and Pautasso C. (2025). *Evolution Scatterplot: Exploring Software ChangeDynamics in Large-Scale Historical Datasets*. Proceedings of 13th IEEE Working Conference on Software Visualization (VISSOFT), pp. 94-105, IEEE, doi: [10.1109/VISSOFT67405.2025.00021](https://doi.org/10.1109/VISSOFT67405.2025.00021).
 
 ## Contacts
 
